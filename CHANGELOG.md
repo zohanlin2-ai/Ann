@@ -15,6 +15,12 @@ This project intends to follow the principles of [Keep a Changelog](https://keep
 - Dependency-aware application launcher that reports missing or incompatible packages.
 - Initial PySide6 desktop interface with a draggable status bubble and command chat window.
 
+### Fixed
+
+- Pinned PySide6 to 6.8.0.2 so the initial release supports Python 3.13.
+- Set the minimum supported Python version to 3.10.
+- Documented the separation between Python-based development and bundled end-user releases.
+
 ## [0.1.0] - TBD
 
 ### Added

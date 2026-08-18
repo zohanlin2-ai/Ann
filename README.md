@@ -78,8 +78,8 @@ Ann is currently written in **Python** and uses **PySide6** for its desktop inte
 
 | Item | Required version | Purpose |
 | --- | --- | --- |
-| Python | 3.11 or newer | Ann core, module runtime, and launcher |
-| PySide6 | 6.8.0 | Desktop bubble, status ring, and command window |
+| Python | 3.10 or newer | Ann core, module runtime, and launcher |
+| PySide6 | 6.8.0.2 | Desktop bubble, status ring, and command window |
 
 `requirements.txt` and `pyproject.toml` contain the same pinned dependency information in machine-readable form so installation and startup checks can use it reliably.
 
@@ -89,6 +89,14 @@ python main.py
 ```
 
 `main.py` checks required packages and versions before Ann starts. If a package is missing or incompatible, it stops and prints the exact installation command. It does not install packages automatically.
+
+## Development and Distribution
+
+During development, Ann runs in a project-specific Python virtual environment. This keeps the Python interpreter and dependency versions reproducible without changing the system Python installation.
+
+End users will not be expected to install, configure, or manage Python. A future release build will bundle Ann, its Python runtime, and its required dependencies into a native Windows application and installer. The bundled runtime will be controlled by Ann, so it will not depend on or conflict with Python versions already installed on the user's computer.
+
+Modules will declare compatibility with Ann releases rather than relying on the user's system Python version. The exact packaging tool and release workflow will be selected before the first distributable release.
 
 ## License
 
