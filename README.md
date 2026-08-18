@@ -83,9 +83,28 @@ Ann is currently written in **Python** and uses **PySide6** for its desktop inte
 
 `requirements.txt` and `pyproject.toml` contain the same pinned dependency information in machine-readable form so installation and startup checks can use it reliably.
 
-```bash
-python -m pip install -r requirements.txt
-python main.py
+### Windows Development Setup
+
+Use an official Windows CPython installation (Python 3.10 or newer) and create a virtual environment in the project directory. Do not use the MSYS2/MinGW Python for this installation workflow because PyPI does not provide a compatible PySide6 wheel for that platform.
+
+In PowerShell, from the project directory:
+
+```powershell
+py -3.10 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe main.py
+```
+
+If the Python Launcher cannot resolve the desired version, replace `py -3.10` in the first command with the full path to an installed CPython executable:
+
+```powershell
+& "C:\Path\To\Python\python.exe" -m venv .venv
+```
+
+After the environment has been created, start Ann with:
+
+```powershell
+.\.venv\Scripts\python.exe main.py
 ```
 
 `main.py` checks required packages and versions before Ann starts. If a package is missing or incompatible, it stops and prints the exact installation command. It does not install packages automatically.
