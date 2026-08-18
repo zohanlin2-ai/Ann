@@ -117,6 +117,26 @@ End users will not be expected to install, configure, or manage Python. A future
 
 Modules will declare compatibility with Ann releases rather than relying on the user's system Python version. The exact packaging tool and release workflow will be selected before the first distributable release.
 
+## Versioning Rules
+
+Ann uses the version format `A.B.C`.
+
+- `A` is fixed at `0` unless the project owner explicitly authorizes a change.
+- `B` ranges from `0` to `9`.
+- `C` ranges from `0` to `99`.
+- Each completed, committable code change increments `C` by one.
+- Documentation-only changes do not change the version number.
+- After `C` reaches `99`, the next code change resets `C` to `0` and increments `B` by one.
+- When the version has reached `0.9.99`, the next code change must not be versioned automatically. Ann must ask the project owner whether `A` should be increased before proceeding.
+
+Examples:
+
+```text
+0.0.00 + code change = 0.0.01
+0.0.99 + code change = 0.1.00
+0.9.99 + code change = project-owner decision required
+```
+
 ## License
 
 No license has been selected yet.

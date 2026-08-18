@@ -26,6 +26,7 @@ This project intends to follow the principles of [Keep a Changelog](https://keep
 - Set the minimum supported Python version to 3.10.
 - Documented the separation between Python-based development and bundled end-user releases.
 - Added the verified Windows CPython virtual-environment setup instructions.
+- Documented the project versioning rules.
 
 ## [0.1.0] - TBD
 
