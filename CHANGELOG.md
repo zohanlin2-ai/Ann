@@ -16,6 +16,7 @@ This project intends to follow the principles of [Keep a Changelog](https://keep
 
 - Update Ann now downloads, verifies, and automatically applies a complete Ann project update after Ann closes.
 - Preserve local virtual environments, Git history, Module Registry, downloaded modules, and the stable launcher during updates.
+- Document the updater version-consistency requirements and current module versions.
 
 ## [0.0.6] - TBD
 

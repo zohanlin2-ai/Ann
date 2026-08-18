@@ -53,6 +53,16 @@ A module manifest is expected to describe at least:
 - Requested permissions, such as network or file-system access
 - Optional configuration schema
 
+### Current Module Versions
+
+The following table lists every module currently included with Ann. Ann Core and Ann Updater are required system modules; Ann Security Monitor is currently the only optional module.
+
+| Module ID | Module | Version | Type | Default state |
+| --- | --- | --- | --- | --- |
+| `ann.core` | Ann Core | 0.0.8 | Required system module | Enabled |
+| `ann.updater` | Ann Updater | 0.0.8 | Required system module | Enabled |
+| `ann.security-monitor` | Ann Security Monitor | 0.1.0 | Optional module | Enabled |
+
 ## Module Catalog and Updates
 
 The canonical Ann repository is intended to be hosted at [zohanlin2-ai/Ann](https://github.com/zohanlin2-ai/Ann).
@@ -60,6 +70,17 @@ The canonical Ann repository is intended to be hosted at [zohanlin2-ai/Ann](http
 Ann can use the repository as a module catalog. On request, the core can compare locally installed module versions with the published catalog, report available updates, and let the user choose which optional modules to install or enable. Updates should always be reviewed before installation, especially when a module requests new permissions.
 
 The exact catalog format and update mechanism will be defined with the first working module system. A future catalog should include module version, compatibility information, source location, integrity information, and release notes.
+
+### Version Consistency
+
+Ann Updater reads `catalog.json`, not README, to decide whether an Ann update is available. The `ann_core.version` value in `catalog.json` must match the Ann Core version declared in all of the following places:
+
+- `Ann_core/manifest.json`
+- `Ann_core/src/ann/__init__.py`
+- `pyproject.toml`
+- The Ann Core row in `VERSION.md`
+
+When Ann Core is released, the Ann Updater manifest is bundled with that release and must use the same version. Every optional module must declare its own version in its `manifest.json` and must be listed in the **Current Module Versions** table above. A release must not be published until these values have been checked for consistency.
 
 ## Security Principles
 
