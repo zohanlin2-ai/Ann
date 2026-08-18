@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project intends to follow the principles of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
+## [0.0.8] - TBD
+
+### Changed
+
+- The root dependency installation flow now includes Security Monitor packet-capture support.
+
 ## [0.0.7] - TBD
 
 ### Changed

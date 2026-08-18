@@ -1,0 +1,2 @@
+# Packet-metadata capture support for Ann Security Monitor.
+scapy==2.6.1

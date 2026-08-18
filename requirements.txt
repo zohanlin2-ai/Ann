@@ -1,2 +1,4 @@
 # Runtime dependencies for Ann. Keep versions pinned for reproducible installs.
 PySide6==6.8.0.2
+# Bundled Security Monitor dependencies.
+-r modules/security_monitor/requirements.txt

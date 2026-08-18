@@ -13,11 +13,12 @@ metadata for simple scan patterns.
 - Live capture requires an authorised environment. On Windows it generally requires
   Npcap and administrator permissions.
 
-To enable the optional capture integration in an existing Ann environment, install
-Scapy separately:
+The normal root installation command installs Scapy because the root requirements
+file includes this module's requirements. Ann does not install Scapy automatically
+when it starts. If you are updating an existing environment manually, run:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install scapy==2.6.1
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
 ## Commands

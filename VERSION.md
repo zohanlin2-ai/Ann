@@ -4,12 +4,16 @@
 
 | Component | Version | Notes |
 | --- | --- | --- |
-| Ann Core | 0.0.7 | Full-project verified automatic updater |
+| Ann Core | 0.0.8 | Security Monitor dependency included in root installation |
 | Python | >=3.10 | Development runtime |
 | PySide6 | 6.8.0.2 | Desktop UI framework |
 | Module Catalog Schema | 1 | GitHub catalog format |
 
 ## Version History
+
+### 0.0.8
+
+- Include the Security Monitor packet-capture dependency in the root installation flow.
 
 ### 0.0.7
 

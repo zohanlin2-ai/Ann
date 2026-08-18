@@ -82,8 +82,11 @@ Ann is currently written in **Python** and uses **PySide6** for its desktop inte
 | --- | --- | --- |
 | Python | 3.10 or newer | Ann core, module runtime, and launcher |
 | PySide6 | 6.8.0.2 | Desktop bubble, status ring, and command window |
+| Scapy | 2.6.1 | Security Monitor packet-metadata capture support |
 
 `requirements.txt` and `pyproject.toml` contain the same pinned dependency information in machine-readable form so installation and startup checks can use it reliably.
+
+The root `requirements.txt` includes the bundled Security Monitor dependency file. When you manually run the normal installation command, pip installs Scapy together with Ann's other dependencies. Ann does not download or install Scapy automatically at startup. On Windows, packet capture additionally requires Npcap and an authorised environment that permits capture.
 
 ### Windows Development Setup
 

@@ -13,13 +13,24 @@ PROJECT_ROOT = Path(os.environ.get("ANN_PROJECT_ROOT", CORE_ROOT.parent))
 REQUIREMENTS = PROJECT_ROOT / "requirements.txt"
 
 
-def verify_dependencies() -> bool:
-    missing: list[str] = []
-    for line in REQUIREMENTS.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
+def pinned_requirements(path: Path) -> list[tuple[str, str]]:
+    """Read pinned requirements, including project-local `-r` files."""
+    items: list[tuple[str, str]] = []
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
         if not line or line.startswith("#"):
             continue
+        if line.startswith("-r "):
+            items.extend(pinned_requirements(path.parent / line[3:].strip()))
+            continue
         package, expected = line.split("==", maxsplit=1)
+        items.append((package, expected))
+    return items
+
+
+def verify_dependencies() -> bool:
+    missing: list[str] = []
+    for package, expected in pinned_requirements(REQUIREMENTS):
         try:
             installed = importlib.metadata.version(package)
         except importlib.metadata.PackageNotFoundError:
