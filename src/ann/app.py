@@ -13,6 +13,7 @@ from ann.ui import Bubble, ChatWindow
 def main() -> int:
     app = QApplication(sys.argv)
     app.setApplicationName("Ann")
+    app.setQuitOnLastWindowClosed(False)
     core = AnnCore()
     bubble = Bubble()
     chat = ChatWindow(core)

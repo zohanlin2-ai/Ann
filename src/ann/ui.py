@@ -66,9 +66,9 @@ class Bubble(QWidget):
         painter.setBrush(QColor("#172131"))
         painter.drawEllipse(center, 30, 30)
         painter.setPen(QPen(QColor("#F3F7FF")))
-        font = QFont("Segoe UI", 18, QFont.DemiBold)
+        font = QFont("Segoe UI", 15, QFont.DemiBold)
         painter.setFont(font)
-        painter.drawText(self.rect(), Qt.AlignCenter, "A")
+        painter.drawText(self.rect(), Qt.AlignCenter, "Ann")
 
     def mousePressEvent(self, event) -> None:  # type: ignore[override]
         if event.button() == Qt.LeftButton:
@@ -159,3 +159,8 @@ class ChatWindow(QDialog):
             self._append(result.text, "Ann")
         self.status_changed.emit(result.status)
         self.input.setFocus()
+
+    def closeEvent(self, event) -> None:  # type: ignore[override]
+        """Keep Ann running and only hide this optional chat window."""
+        event.ignore()
+        self.hide()

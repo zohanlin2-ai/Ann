@@ -15,6 +15,11 @@ This project intends to follow the principles of [Keep a Changelog](https://keep
 - Dependency-aware application launcher that reports missing or incompatible packages.
 - Initial PySide6 desktop interface with a draggable status bubble and command chat window.
 
+### Changed
+
+- Display the full "Ann" name in the Bubble.
+- Keep Ann running when the command chat window is closed; the Bubble remains available.
+
 ### Fixed
 
 - Pinned PySide6 to 6.8.0.2 so the initial release supports Python 3.13.
