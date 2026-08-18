@@ -4,6 +4,8 @@ Ann Core is Ann's required system module. It provides the desktop Bubble and cha
 
 Ann Core is always enabled and cannot be disabled from Module List. The Ann Updater downloads a complete newer Ann project into `backup_ann/`, validates it without opening the normal UI, then requests a restart. The stable `launcher.py` applies the verified project update while preserving local user data.
 
+Ann Core writes its module log to `logs/modules/ann.core.log`. Update diagnostics are also written to `logs/ann-update.log`. Logs rotate automatically when they reach 1 MB and retain three older log files.
+
 ## Included Components
 
 - `main.py` — Core entry point and dependency check.

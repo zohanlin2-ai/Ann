@@ -6,6 +6,8 @@ import importlib.util
 import sys
 from pathlib import Path
 
+from ann.debug_log import get_module_logger
+
 
 def create_module(project_root: Path):
     module_root = Path(__file__).resolve().parent
@@ -16,4 +18,6 @@ def create_module(project_root: Path):
     package = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = package
     spec.loader.exec_module(package)
-    return package.SecurityMonitor(project_root)
+    logger = get_module_logger(project_root, "ann.security-monitor")
+    logger.info("Loading Ann Security Monitor")
+    return package.SecurityMonitor(project_root, logger)

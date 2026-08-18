@@ -4,12 +4,22 @@
 
 | Component | Version | Notes |
 | --- | --- | --- |
-| Ann Core | 0.0.8 | Security Monitor dependency included in root installation |
+| Ann Core | 0.0.10 | Per-module and update diagnostic logs |
 | Python | >=3.10 | Development runtime |
 | PySide6 | 6.8.0.2 | Desktop UI framework |
 | Module Catalog Schema | 1 | GitHub catalog format |
 
 ## Version History
+
+### 0.0.10
+
+- Add a separate debug log for Ann Core, Ann Updater, and every loaded module.
+- Mirror updater diagnostics into the aggregate update log.
+
+### 0.0.9
+
+- Add persistent update diagnostics in `logs/ann-update.log`.
+- Record catalog checks, downloads, staged verification, update application, and errors.
 
 ### 0.0.8
 

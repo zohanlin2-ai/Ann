@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from ipaddress import ip_address
+import logging
 from pathlib import Path
 
 from PySide6.QtWidgets import QDialog
@@ -10,19 +11,23 @@ from .store import Store
 
 
 class SecurityMonitor:
-    def __init__(self, project_root: Path) -> None:
+    def __init__(self, project_root: Path, logger: logging.Logger) -> None:
+        self.logger = logger
         self.store = Store(project_root / "data" / "security_monitor")
         self.capture = PacketCapture(self.record_network)
         # Pause state is intentionally process-only. Ann restarts monitoring on
         # every new launch, as requested by the product owner.
         self.paused = False
+        self.logger.info("Security Monitor started")
 
     def pause(self) -> None:
+        self.logger.info("Security Monitor paused")
         self.paused = True
         self.capture.stop()
         self.store.audit("monitoring_paused", "Monitoring paused for this Ann session.")
 
     def resume(self) -> None:
+        self.logger.info("Security Monitor resumed")
         self.paused = False
         self.store.audit("monitoring_resumed", "Monitoring resumed for this Ann session.")
 
@@ -51,11 +56,13 @@ class SecurityMonitor:
     def _alert_once(self, kind: str, severity: str, subject: str, detail: str) -> None:
         if not self.store.has_recent_alert(kind, subject):
             self.store.add_alert(kind, severity, subject, detail)
+            self.logger.warning("Security alert created; kind=%s severity=%s subject=%s", kind, severity, subject)
 
     def handle_command(self, command: str) -> str | None:
         parts = command.strip().split()
         if not parts or parts[0].lower() != "security":
             return None
+        self.logger.info("Security command received: %s", command)
         if len(parts) == 1 or parts[1].lower() == "status":
             data = self.store.dashboard()
             capture = "running" if self.capture.active else "stopped"

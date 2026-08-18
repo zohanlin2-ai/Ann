@@ -34,6 +34,10 @@ when it starts. If you are updating an existing environment manually, run:
 
 The default retention period is 30 days. Change it in Security Center → Privacy & Data.
 
+## Debug Log
+
+Security Monitor writes diagnostic events to `logs/modules/ann.security-monitor.log`. The log records module startup, commands, pause/resume actions, and generated alerts. It rotates automatically when it reaches 1 MB and retains three older log files.
+
 ## Session pause
 
 The Security Center's **Pause monitoring** control and `security pause` stop
@@ -61,6 +65,10 @@ change; `B` ranges from `0` to `9`; and `C` ranges from `0` to `99`.
   owner whether the major component may increase.
 
 ## Release History
+
+### 0.1.1
+
+- Add the Security Monitor module debug log.
 
 ### 0.1.0
 

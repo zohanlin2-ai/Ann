@@ -9,4 +9,5 @@ rollback_ann/
 .ann_trial_ready
 modules/registry.json
 modules/downloaded/
+logs/
 data/security_monitor/

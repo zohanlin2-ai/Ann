@@ -59,9 +59,9 @@ The following table lists every module currently included with Ann. Ann Core and
 
 | Module ID | Module | Version | Type | Default state | Summary |
 | --- | --- | --- | --- | --- | --- |
-| `ann.core` | Ann Core | 0.0.8 | Required system module | Enabled | Desktop UI, command routing, registry, and module runtime. |
-| `ann.updater` | Ann Updater | 0.0.8 | Required system module | Enabled | Checks, verifies, and applies full-project Ann updates. |
-| `ann.security-monitor` | Ann Security Monitor | 0.1.0 | Optional module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center. |
+| `ann.core` | Ann Core | 0.0.10 | Required system module | Enabled | Desktop UI, command routing, registry, and module runtime. |
+| `ann.updater` | Ann Updater | 0.0.10 | Required system module | Enabled | Checks, verifies, and applies full-project Ann updates. |
+| `ann.security-monitor` | Ann Security Monitor | 0.1.1 | Optional module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center. |
 
 ## Module Catalog and Updates
 
@@ -186,6 +186,14 @@ Modules will declare compatibility with Ann releases rather than relying on the 
 The required **Ann Updater** module uses the configured GitHub catalog to check for and update Ann Core. It is always enabled and is updated together with Ann Core. Downloading optional modules is not supported yet.
 
 For an Ann update, the Updater downloads the complete GitHub project into `backup_ann/` and runs a headless validation of the staged project. If validation succeeds, Ann closes and the stable `launcher.py` automatically applies the update and restarts Ann. The updater preserves `.venv`, `.git`, local module state, and `launcher.py`; replaced managed project files are saved in `rollback_ann/`.
+
+### Update Debug Log
+
+Ann records update diagnostics in `logs/ann-update.log`. This file records the catalog URL and version comparison, archive download size and validation, staged-project verification output, launcher replacement steps, and full error stack traces. Log files rotate automatically at 1 MB and keep three previous files. The `logs/` directory is local diagnostic data and is not committed to Git.
+
+### Module Debug Logs
+
+Every loaded module has an individual debug log at `logs/modules/<module-id>.log`. Ann Core uses `ann.core.log`, Ann Updater uses `ann.updater.log`, and Ann Security Monitor uses `ann.security-monitor.log`. Module logs record startup and module-specific diagnostic events; Ann Updater additionally mirrors its update lifecycle events to `logs/ann-update.log`.
 
 Available chat commands include:
 

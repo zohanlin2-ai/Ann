@@ -11,6 +11,10 @@ It reads the GitHub catalog configured in the project root and stages a complete
 3. If validation succeeds, Ann closes and `launcher.py` automatically applies the staged project.
 4. The launcher preserves `.venv`, `.git`, `modules/registry.json`, downloaded modules, and itself; it saves replaced project files in `rollback_ann/`.
 
+## Debug Log
+
+Ann Updater writes its own module log to `logs/modules/ann.updater.log` and mirrors update diagnostics to `logs/ann-update.log`. When an update fails or appears stuck, inspect either log for the catalog URL, version comparison, download result, verification output, launcher activity, and any error stack trace.
+
 ## Commands
 
 - `update check`
