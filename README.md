@@ -107,6 +107,19 @@ For example, Ann Core version `0.0.8` requires this catalog entry:
 
 Ann Updater compares the installed Ann Core version with `ann_core.version`. If the catalog version is not higher, it correctly reports that Ann is already current.
 
+### Adding or Updating a Module
+
+When a module is added or its code changes, update all of the following before publishing the Ann release:
+
+1. Keep the module implementation, `manifest.json`, and detailed module `README.md` in the same module directory.
+2. Set the module's own version in its `manifest.json`.
+3. Add or update that module in the **Current Module Versions** table in this README.
+4. Add a module-specific release note to its README and a project-level note to `CHANGELOG.md`.
+5. If the module is distributed through Ann Updater in the future, add its version, archive URL, compatibility requirements, and permissions to `catalog.json`.
+6. Commit and push the module code, manifest, README, catalog entry when applicable, and version documentation together.
+
+For example, the current Ann Security Monitor module is maintained in `modules/security_monitor/` with its implementation, `manifest.json`, detailed README, tests, and its own version (`0.1.0`).
+
 ## Security Principles
 
 - Modules should have the minimum permissions needed for their purpose.

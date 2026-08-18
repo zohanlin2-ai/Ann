@@ -18,6 +18,7 @@ This project intends to follow the principles of [Keep a Changelog](https://keep
 - Preserve local virtual environments, Git history, Module Registry, downloaded modules, and the stable launcher during updates.
 - Document the updater version-consistency requirements and current module versions.
 - Add the catalog release-maintenance procedure.
+- Add the module publication and version-maintenance procedure.
 
 ## [0.0.6] - TBD
 
