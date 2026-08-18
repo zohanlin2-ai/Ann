@@ -63,13 +63,39 @@ The following table lists every module currently included with Ann. Ann Core and
 | `ann.updater` | Ann Updater | 0.0.11 | Required system module | Enabled | Checks, verifies, and applies full-project Ann updates. |
 | `ann.security-monitor` | Ann Security Monitor | 0.0.11 | Optional module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center. |
 
-## Module Catalog and Updates
+## Version and Release Management
 
 The canonical Ann repository is intended to be hosted at [zohanlin2-ai/Ann](https://github.com/zohanlin2-ai/Ann).
 
 Ann can use the repository as a module catalog. On request, the core can compare locally installed module versions with the published catalog, report available updates, and let the user choose which optional modules to install or enable. Updates should always be reviewed before installation, especially when a module requests new permissions.
 
 The exact catalog format and update mechanism will be defined with the first working module system. A future catalog should include module version, compatibility information, source location, integrity information, and release notes.
+
+This chapter is the authoritative process for releasing Ann and its modules. Every new module must keep its detailed README beside its code and follow the version, catalog, and documentation rules in this chapter before it is released.
+
+### Version Number Rules
+
+Ann uses the version format `A.B.C`.
+
+- `A` is fixed at `0` unless the project owner explicitly authorizes a change.
+- `B` ranges from `0` to `9`.
+- `C` ranges from `0` to `99`.
+- Each completed, committable code change increments `C` by one.
+- Documentation-only changes do not change the version number.
+- After `C` reaches `99`, the next code change resets `C` to `0` and increments `B` by one.
+- When the version has reached `0.9.99`, the next code change must not be versioned automatically. Ann must ask the project owner whether `A` should be increased before proceeding.
+
+Examples:
+
+```text
+0.0.00 + code change = 0.0.01
+0.0.99 + code change = 0.1.00
+0.9.99 + code change = project-owner decision required
+```
+
+### `VERSION.md` Document Rules
+
+`VERSION.md` is the single current-version reference for Ann. It must list Ann Core and every module currently included with Ann, with each module's current version. It must also retain the latest modification log for each listed module. Earlier version notes and the complete chronological project history belong in `CHANGELOG.md`.
 
 ### Version Consistency
 
@@ -111,12 +137,12 @@ Each `modules` entry in `catalog.json` must include the module ID, display name,
 
 ### Adding or Updating a Module
 
-When a module is added or its code changes, update all of the following before publishing the Ann release:
+When a module is added or its code changes, first read and follow this **Version and Release Management** chapter. Then update all of the following before publishing the Ann release:
 
 1. Keep the module implementation, `manifest.json`, and detailed module `README.md` in the same module directory.
 2. Set the module's own version in its `manifest.json`.
 3. Add or update that module in the **Current Module Versions** table in this README.
-4. Add a module-specific release note to its README and a project-level note to `CHANGELOG.md`.
+4. Record the module's latest modification log in `VERSION.md`, add a module-specific release note to its README, and add a project-level note to `CHANGELOG.md`.
 5. If the module is part of an Ann release, add its ID, display name, version, and manifest path to `catalog.json` so Ann Updater can verify it. Add archive URLs, compatibility requirements, and permissions when the module is independently distributed in the future.
 6. Commit and push the module code, manifest, README, catalog entry when applicable, and version documentation together.
 
@@ -212,32 +238,6 @@ security pause
 security resume
 security capture start [seconds]
 security capture stop
-```
-
-## Versioning Rules
-
-Ann uses the version format `A.B.C`.
-
-The current release and every current module version are recorded in [VERSION.md](VERSION.md). Its **Version History** retains only the newest Ann Core release summary; `CHANGELOG.md` is the complete release history. `VERSION.md`, `pyproject.toml`, and `CHANGELOG.md` must be kept consistent whenever the Ann Core version changes.
-
-### `VERSION.md` Document Rules
-
-`VERSION.md` is the single current-version reference for Ann. It must list Ann Core and every module currently included with Ann, with each module's current version. Its **Version History** contains only the latest Ann Core version's summary. Previous version notes and the complete chronological history belong in `CHANGELOG.md`.
-
-- `A` is fixed at `0` unless the project owner explicitly authorizes a change.
-- `B` ranges from `0` to `9`.
-- `C` ranges from `0` to `99`.
-- Each completed, committable code change increments `C` by one.
-- Documentation-only changes do not change the version number.
-- After `C` reaches `99`, the next code change resets `C` to `0` and increments `B` by one.
-- When the version has reached `0.9.99`, the next code change must not be versioned automatically. Ann must ask the project owner whether `A` should be increased before proceeding.
-
-Examples:
-
-```text
-0.0.00 + code change = 0.0.01
-0.0.99 + code change = 0.1.00
-0.9.99 + code change = project-owner decision required
 ```
 
 ## License

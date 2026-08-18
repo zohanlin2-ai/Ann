@@ -47,7 +47,7 @@ time-bounded.
 
 ## Module Versioning Rules
 
-Security Monitor follows Ann's root [versioning rules](../../README.md#versioning-rules).
+Security Monitor follows Ann's root [Version and Release Management](../../README.md#version-and-release-management) chapter.
 It is a catalog-managed module included in every Ann release, so its version must
 always equal the current Ann Core release version; it does not independently use a
 separate version sequence.
