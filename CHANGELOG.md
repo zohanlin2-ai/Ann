@@ -19,6 +19,13 @@ This project intends to follow the principles of [Keep a Changelog](https://keep
 
 - Display the full "Ann" name in the Bubble.
 - Keep Ann running when the command chat window is closed; the Bubble remains available.
+- Position the Bubble at the primary screen's bottom-right corner when Ann starts.
+
+### Added
+
+- Bubble right-click menu with Update, About Ann, and Exit Ann actions.
+- About Ann dialog that displays the declared current-release information from `VERSION.md`.
+- `exit` and `quit` commands with case-insensitive Y/N confirmation.
 
 ### Fixed
 

@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QPoint, Qt, Signal
-from PySide6.QtGui import QColor, QFont, QPainter, QPen
+from PySide6.QtGui import QColor, QFont, QGuiApplication, QPainter, QPen
 from PySide6.QtWidgets import (
     QDialog,
-    QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QMenu,
+    QMessageBox,
     QPlainTextEdit,
     QPushButton,
     QVBoxLayout,
@@ -32,6 +33,9 @@ class Bubble(QWidget):
     """A compact, draggable, always-on-top status control."""
 
     clicked = Signal()
+    update_requested = Signal()
+    about_requested = Signal()
+    exit_requested = Signal()
 
     def __init__(self) -> None:
         super().__init__()
@@ -47,6 +51,17 @@ class Bubble(QWidget):
         self.status = status
         self.setToolTip(f"Ann — {status.value}")
         self.update()
+
+    def move_to_bottom_right(self, margin: int = 24) -> None:
+        """Place the Bubble inside the primary screen's usable bottom-right area."""
+        screen = self.screen() or QGuiApplication.primaryScreen()
+        if screen is None:
+            return
+        area = screen.availableGeometry()
+        self.move(
+            area.x() + area.width() - self.width() - margin,
+            area.y() + area.height() - self.height() - margin,
+        )
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
         del event
@@ -91,11 +106,28 @@ class Bubble(QWidget):
             self.clicked.emit()
         super().mouseReleaseEvent(event)
 
+    def contextMenuEvent(self, event) -> None:  # type: ignore[override]
+        menu = QMenu(self)
+        update_action = menu.addAction("Update…")
+        menu.addSeparator()
+        about_action = menu.addAction("About Ann")
+        menu.addSeparator()
+        exit_action = menu.addAction("Exit Ann")
+
+        selected = menu.exec(event.globalPos())
+        if selected is update_action:
+            self.update_requested.emit()
+        elif selected is about_action:
+            self.about_requested.emit()
+        elif selected is exit_action:
+            self.exit_requested.emit()
+
 
 class ChatWindow(QDialog):
     """Command-only conversation window for the first Ann milestone."""
 
     status_changed = Signal(AnnStatus)
+    exit_requested = Signal()
 
     def __init__(self, core: AnnCore) -> None:
         super().__init__()
@@ -158,7 +190,17 @@ class ChatWindow(QDialog):
         else:
             self._append(result.text, "Ann")
         self.status_changed.emit(result.status)
+        if result.status is AnnStatus.OFFLINE:
+            self.exit_requested.emit()
         self.input.setFocus()
+
+
+def show_update_message(parent: QWidget) -> None:
+    QMessageBox.information(
+        parent,
+        "Update",
+        "Updates are not available yet. This menu will check the Ann GitHub catalog in a future release.",
+    )
 
     def closeEvent(self, event) -> None:  # type: ignore[override]
         """Keep Ann running and only hide this optional chat window."""

@@ -68,7 +68,7 @@ The exact catalog format and update mechanism will be defined with the first wor
 
 ## Status
 
-Ann currently includes its first desktop UI milestone: a draggable status bubble with a glowing state ring and a command-only chat window. The command core currently supports `help`, `status`, `modules list`, and `clear`.
+Ann currently includes its first desktop UI milestone: a draggable status bubble with a glowing state ring and a command-only chat window. The Bubble starts in the primary screen's bottom-right corner. Its context menu provides Update, About Ann, and Exit Ann actions. The command core currently supports `help`, `status`, `modules list`, `clear`, and `exit` / `quit`.
 
 ## Requirements and Installation
 
