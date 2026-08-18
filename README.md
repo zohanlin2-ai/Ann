@@ -14,10 +14,10 @@ Ann is a modular AI Assistant designed to stay small at its core and grow throug
 
 Ann has two layers:
 
-1. **Core** — Starts Ann, loads configuration, discovers modules, routes requests, records logs, and applies permission rules.
-2. **Modules** — Add focused features such as commands, integrations, user interfaces, memory, notifications, or scheduled tasks.
+1. **Ann Core module** — The required system module that starts Ann, loads configuration, discovers modules, routes requests, records logs, and applies permission rules.
+2. **Other modules** — Add focused features such as commands, integrations, user interfaces, memory, notifications, or scheduled tasks.
 
-The core should not depend on a particular module. A module declares its identity, version, entry point, dependencies, and requested permissions in a manifest file.
+Ann Core is itself a required, always-enabled system module. Other modules declare their identity, version, entry point, dependencies, and requested permissions in a manifest file.
 
 ## Proposed Project Layout
 
@@ -121,7 +121,7 @@ Modules will declare compatibility with Ann releases rather than relying on the 
 
 ## Updates and Module State
 
-The required **Ann Updater** module uses the configured GitHub catalog to check for, download, and update Ann Core and optional modules. It is always enabled. A successfully downloaded optional module is not automatically enabled: Ann Core records it in the local Module Registry, and the user enables or disables it in **Modules…** or through a chat command.
+The required **Ann Updater** module uses the configured GitHub catalog to check for, download, and update Ann Core and optional modules. It is always enabled. A successfully downloaded optional module is not automatically enabled: Ann Core records it in the local Module Registry, and the user enables or disables it in **Modules** or through a chat command.
 
 For an Ann Core update, the Updater downloads the new Core into `backup_ann/`. On the next launch, `launcher.py` starts this staged Core first. Once it reports a healthy UI startup, the launcher promotes it to `Ann_core/` and keeps the preceding Core in `rollback_ann/`.
 

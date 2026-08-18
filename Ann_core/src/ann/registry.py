@@ -31,6 +31,17 @@ class ModuleRegistry:
         temporary.replace(self.registry_path)
 
     def _ensure_updater(self) -> None:
+        core_manifest_path = self.core_root / "manifest.json"
+        core_manifest = json.loads(core_manifest_path.read_text(encoding="utf-8"))
+        self.data["modules"][core_manifest["id"]] = {
+            "id": core_manifest["id"],
+            "name": core_manifest["name"],
+            "version": core_manifest["version"],
+            "path": "Ann_core",
+            "source": "System",
+            "enabled": True,
+            "system": True,
+        }
         manifest_path = self.core_root / "modules" / "updater" / "manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         self.data["modules"][manifest["id"]] = {
@@ -51,7 +62,7 @@ class ModuleRegistry:
         if module is None:
             raise ValueError(f"Module '{module_id}' has not been downloaded.")
         if module["system"] and not enabled:
-            raise ValueError("The Ann Updater is a required system module and must remain enabled.")
+            raise ValueError(f"{module['name']} is a required system module and must remain enabled.")
         module["enabled"] = enabled
         self._write()
 

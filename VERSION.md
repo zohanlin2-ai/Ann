@@ -4,12 +4,17 @@
 
 | Component | Version | Notes |
 | --- | --- | --- |
-| Ann Core | 0.0.3 | Modular Core, GitHub updater, and module registry |
+| Ann Core | 0.0.4 | System module with GitHub updater and module registry |
 | Python | >=3.10 | Development runtime |
 | PySide6 | 6.8.0.2 | Desktop UI framework |
 | Module Catalog Schema | 1 | GitHub catalog format |
 
 ## Version History
+
+### 0.0.4
+
+- Register Ann Core as a required system module.
+- Remove the context-menu ellipses from Update and Modules.
 
 ### 0.0.3
 

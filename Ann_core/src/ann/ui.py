@@ -73,8 +73,8 @@ class Bubble(QWidget):
 
     def contextMenuEvent(self, event) -> None:  # type: ignore[override]
         menu = QMenu(self)
-        update = menu.addAction("Update…")
-        modules = menu.addAction("Modules…")
+        update = menu.addAction("Update")
+        modules = menu.addAction("Modules")
         menu.addSeparator()
         about = menu.addAction("About Ann")
         menu.addSeparator()

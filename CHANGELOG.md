@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 This project intends to follow the principles of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
-## [0.0.3] - TBD
+## [0.0.4] - TBD
 
 ### Added
 
@@ -30,6 +30,11 @@ This project intends to follow the principles of [Keep a Changelog](https://keep
 - GitHub-backed Ann Updater system module and catalog format.
 - Persistent Module Registry, Module List checkboxes, and module enable/disable commands.
 - Chat commands for checking, downloading, and applying Core or module updates.
+- Register Ann Core as a required system module with its own manifest and documentation.
+
+### Changed
+
+- Rename Bubble context-menu actions from `Update…` and `Modules…` to `Update` and `Modules`.
 
 ### Fixed
 
