@@ -1,7 +1,7 @@
 {
   "id": "ann.core",
   "name": "Ann Core",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "system": true,
   "default_enabled": true,
   "description": "The required core module that provides Ann's runtime, UI, module registry, and command routing."

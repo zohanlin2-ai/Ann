@@ -59,8 +59,8 @@ The following table lists every module currently included with Ann. Ann Core and
 
 | Module ID | Module | Version | Type | Default state | Summary |
 | --- | --- | --- | --- | --- | --- |
-| `ann.core` | Ann Core | 0.0.10 | Required system module | Enabled | Desktop UI, command routing, registry, and module runtime. |
-| `ann.updater` | Ann Updater | 0.0.10 | Required system module | Enabled | Checks, verifies, and applies full-project Ann updates. |
+| `ann.core` | Ann Core | 0.0.11 | Required system module | Enabled | Desktop UI, command routing, registry, and module runtime. |
+| `ann.updater` | Ann Updater | 0.0.11 | Required system module | Enabled | Checks, verifies, and applies full-project Ann updates. |
 | `ann.security-monitor` | Ann Security Monitor | 0.1.1 | Optional module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center. |
 
 ## Module Catalog and Updates
@@ -105,7 +105,9 @@ For example, Ann Core version `0.0.8` requires this catalog entry:
 }
 ```
 
-Ann Updater compares the installed Ann Core version with `ann_core.version`. If the catalog version is not higher, it correctly reports that Ann is already current.
+Ann Updater compares every catalog-managed module with its catalog version. If any listed version differs, Ann requires a complete project update; Ann is current only when every listed version matches exactly. Local custom modules that are not listed in `catalog.json` are not overwritten automatically.
+
+Each `modules` entry in `catalog.json` must include the module ID, display name, version, and path to that module's manifest. The staged-project verifier checks that every catalog entry matches its manifest before Ann applies the update.
 
 ### Adding or Updating a Module
 
@@ -115,7 +117,7 @@ When a module is added or its code changes, update all of the following before p
 2. Set the module's own version in its `manifest.json`.
 3. Add or update that module in the **Current Module Versions** table in this README.
 4. Add a module-specific release note to its README and a project-level note to `CHANGELOG.md`.
-5. If the module is distributed through Ann Updater in the future, add its version, archive URL, compatibility requirements, and permissions to `catalog.json`.
+5. If the module is part of an Ann release, add its ID, display name, version, and manifest path to `catalog.json` so Ann Updater can verify it. Add archive URLs, compatibility requirements, and permissions when the module is independently distributed in the future.
 6. Commit and push the module code, manifest, README, catalog entry when applicable, and version documentation together.
 
 For example, the current Ann Security Monitor module is maintained in `modules/security_monitor/` with its implementation, `manifest.json`, detailed README, tests, and its own version (`0.1.0`).

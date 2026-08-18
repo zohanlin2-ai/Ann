@@ -22,8 +22,18 @@ def verify_update(project_root: Path, core_root: Path) -> bool:
         return False
     core_manifest = json.loads((core_root / "manifest.json").read_text(encoding="utf-8"))
     updater_manifest = json.loads((core_root / "modules" / "updater" / "manifest.json").read_text(encoding="utf-8"))
-    if core_manifest.get("id") != "ann.core" or updater_manifest.get("id") != "ann.updater":
+    catalog = json.loads((project_root / "catalog.json").read_text(encoding="utf-8"))
+    if core_manifest.get("id") != "ann.core" or core_manifest.get("version") != catalog["ann_core"].get("version"):
         return False
+    if updater_manifest.get("id") != "ann.updater":
+        return False
+    for module in catalog.get("modules", []):
+        manifest_path = project_root / module["manifest_path"]
+        if not manifest_path.is_file():
+            return False
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if manifest.get("id") != module["id"] or manifest.get("version") != module["version"]:
+            return False
     try:
         import PySide6  # noqa: F401
         from ann.module_runtime import load_updater  # noqa: F401

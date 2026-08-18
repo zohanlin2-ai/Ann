@@ -4,6 +4,8 @@ Ann Updater is Ann's required system module. It is enabled by default and cannot
 
 It reads the GitHub catalog configured in the project root and stages a complete newer Ann project in `backup_ann/`. Ann Updater is bundled with Ann Core and is updated together with it. Downloading optional modules is not supported yet.
 
+`catalog.json` lists every catalog-managed module and its expected version. Ann Updater stages a complete project update whenever any listed installed module version differs from the catalog.
+
 ## Core Update Flow
 
 1. `update ann` downloads the complete GitHub project into `backup_ann/`.

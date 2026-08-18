@@ -4,12 +4,17 @@
 
 | Component | Version | Notes |
 | --- | --- | --- |
-| Ann Core | 0.0.10 | Per-module and update diagnostic logs |
+| Ann Core | 0.0.11 | Catalog-managed full-module version checks |
 | Python | >=3.10 | Development runtime |
 | PySide6 | 6.8.0.2 | Desktop UI framework |
 | Module Catalog Schema | 1 | GitHub catalog format |
 
 ## Version History
+
+### 0.0.11
+
+- List every catalog-managed module and its latest version in `catalog.json`.
+- Require a full Ann update whenever any catalog-managed module version differs.
 
 ### 0.0.10
 

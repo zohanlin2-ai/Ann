@@ -36,9 +36,12 @@ class Updater:
         self.logger.info("Catalog fetched successfully; Ann Core version=%s", catalog.get("ann_core", {}).get("version"))
         return catalog
 
-    @staticmethod
-    def _is_newer(remote: str, local: str) -> bool:
-        return tuple(map(int, remote.split("."))) > tuple(map(int, local.split(".")))
+    def _version_differences(self, catalog: dict) -> list[tuple[str, str, str]]:
+        """Return catalog-managed modules whose installed version differs."""
+        expected = {"ann.core": catalog["ann_core"]["version"]}
+        expected.update({module["id"]: module["version"] for module in catalog.get("modules", [])})
+        installed = {module["id"]: module["version"] for module in self.registry.list_modules()}
+        return [(module_id, installed.get(module_id, "not installed"), version) for module_id, version in expected.items() if installed.get(module_id) != version]
 
     @staticmethod
     def _safe_extract(archive: Path, destination: Path) -> None:
@@ -64,14 +67,19 @@ class Updater:
 
     def check(self) -> str:
         catalog = self._catalog()
-        messages: list[str] = []
-        remote_core = catalog["ann_core"]["version"]
-        local_core = json.loads((self.core_root / "modules" / "updater" / "manifest.json").read_text(encoding="utf-8"))["version"]
-        self.logger.info("Update check comparison; local=%s remote=%s", local_core, remote_core)
-        messages.append(
-            f"Ann Core: {local_core} → {remote_core}" if self._is_newer(remote_core, local_core) else f"Ann Core: {local_core} (current)"
-        )
-        messages.append(f"Ann Updater: {local_core} (bundled with Ann Core)")
+        differences = self._version_differences(catalog)
+        installed = {module["id"]: module["version"] for module in self.registry.list_modules()}
+        expected = [("ann.core", "Ann Core", catalog["ann_core"]["version"])] + [
+            (module["id"], module.get("name", module["id"]), module["version"])
+            for module in catalog.get("modules", [])
+        ]
+        self.logger.info("Catalog version comparison; differences=%s", differences)
+        messages = [
+            f"{name}: {installed.get(module_id, 'not installed')} → {version} (update required)"
+            if installed.get(module_id) != version
+            else f"{name}: {version} (current)"
+            for module_id, name, version in expected
+        ]
         return "\n".join(messages)
 
     def stage_project_update(self):
@@ -80,10 +88,10 @@ class Updater:
         try:
             catalog = self._catalog()
             item = catalog["ann_core"]
-            local = json.loads((self.core_root / "manifest.json").read_text(encoding="utf-8"))["version"]
-            self.logger.info("Update Ann requested; local=%s remote=%s", local, item["version"])
-            if not self._is_newer(item["version"], local):
-                self.logger.info("Update skipped because the catalog is not newer")
+            differences = self._version_differences(catalog)
+            self.logger.info("Update Ann requested; version differences=%s", differences)
+            if not differences:
+                self.logger.info("Update skipped because every catalog-managed module matches")
                 return CommandResult("Ann is already current.")
             target = self.project_root / "backup_ann"
             if target.exists():

@@ -4,12 +4,13 @@ All notable changes to this project will be documented in this file.
 
 This project intends to follow the principles of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
-## [0.0.10] - TBD
+## [0.0.11] - TBD
 
 ### Added
 
 - Persistent update debug logs for the updater and stable launcher.
 - Per-module debug logs for Ann Core, Ann Updater, and loaded optional modules.
+- Catalog-managed version comparison for Ann Core, Ann Updater, and included modules.
 
 ### Changed
 
