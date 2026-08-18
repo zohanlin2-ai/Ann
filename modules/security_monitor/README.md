@@ -47,30 +47,30 @@ time-bounded.
 
 ## Module Versioning Rules
 
-Security Monitor follows Ann's root [versioning rules](../../README.md#versioning-rules)
-and uses the `A.B.C` format. `A` remains `0` unless the project owner authorises a
-change; `B` ranges from `0` to `9`; and `C` ranges from `0` to `99`.
+Security Monitor follows Ann's root [versioning rules](../../README.md#versioning-rules).
+It is a catalog-managed module included in every Ann release, so its version must
+always equal the current Ann Core release version; it does not independently use a
+separate version sequence.
 
-- Every completed, committable Security Monitor code change increments the module's
-  `C` version by one. After `C` reaches `99`, the next code change resets `C` to
-  `0` and increments `B` by one.
+- Every completed, committable Security Monitor code change increments Ann's
+  release version under the root `A.B.C` rules, and the same version is assigned to
+  Security Monitor in that release.
 - Documentation-only changes do not change the module version.
 - For a module release, update `manifest.json`, this README's Release History, the
-  **Current Module Versions** table in the root README, and add a project-level
-  release note to `CHANGELOG.md` in the same commit.
-- Only when Ann Updater supports distributing Security Monitor must its version,
-  archive URL, compatibility requirements, and permissions also be added to
-  `catalog.json`.
-- At `0.9.99`, do not automatically create the next module version; ask the project
-  owner whether the major component may increase.
+  **Current Module Versions** table in the root README, `VERSION.md`,
+  `catalog.json`, and add a project-level release note to `CHANGELOG.md` in the
+  same commit.
+- At `0.9.99`, do not automatically create the next release version; ask the
+  project owner whether the major component may increase.
 
 ## Release History
 
-### 0.1.1
+### 0.0.11
 
+- Align the module version with the catalog-managed Ann `0.0.11` release.
 - Add the Security Monitor module debug log.
 
-### 0.1.0
+### 0.0.6
 
 - Initial Security Monitor release with local alert storage, Security Center settings,
   session-only pause/resume controls, login anomaly rules, and optional time-bounded

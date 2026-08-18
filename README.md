@@ -61,7 +61,7 @@ The following table lists every module currently included with Ann. Ann Core and
 | --- | --- | --- | --- | --- | --- |
 | `ann.core` | Ann Core | 0.0.11 | Required system module | Enabled | Desktop UI, command routing, registry, and module runtime. |
 | `ann.updater` | Ann Updater | 0.0.11 | Required system module | Enabled | Checks, verifies, and applies full-project Ann updates. |
-| `ann.security-monitor` | Ann Security Monitor | 0.1.1 | Optional module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center. |
+| `ann.security-monitor` | Ann Security Monitor | 0.0.11 | Optional module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center. |
 
 ## Module Catalog and Updates
 
@@ -120,7 +120,7 @@ When a module is added or its code changes, update all of the following before p
 5. If the module is part of an Ann release, add its ID, display name, version, and manifest path to `catalog.json` so Ann Updater can verify it. Add archive URLs, compatibility requirements, and permissions when the module is independently distributed in the future.
 6. Commit and push the module code, manifest, README, catalog entry when applicable, and version documentation together.
 
-For example, the current Ann Security Monitor module is maintained in `modules/security_monitor/` with its implementation, `manifest.json`, detailed README, tests, and its own version (`0.1.0`).
+For example, the current Ann Security Monitor module is maintained in `modules/security_monitor/` with its implementation, `manifest.json`, detailed README, tests, and the current Ann release version (`0.0.11`).
 
 ## Security Principles
 

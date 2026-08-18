@@ -11,6 +11,7 @@ This project intends to follow the principles of [Keep a Changelog](https://keep
 - Persistent update debug logs for the updater and stable launcher.
 - Per-module debug logs for Ann Core, Ann Updater, and loaded optional modules.
 - Catalog-managed version comparison for Ann Core, Ann Updater, and included modules.
+- Align the catalog-managed Ann Security Monitor release version to `0.0.11`.
 
 ### Changed
 
