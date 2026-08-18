@@ -129,7 +129,7 @@ For example, the current Ann Security Monitor module is maintained in `modules/s
 
 ## Status
 
-Ann currently includes its first desktop UI milestone: a draggable status bubble with a glowing state ring and a command-only chat window. The Bubble starts in the primary screen's bottom-right corner. Its context menu provides Update, Modules, About Ann, and Exit Ann actions. The command core supports module and update commands as well as `exit` / `quit`.
+Ann currently includes its first desktop UI milestone: a draggable status bubble with a glowing state ring and a command-only chat window. The Bubble starts in the primary screen's bottom-right corner. Its context menu provides Update, Modules, Security Center (when Security Monitor is enabled), About Ann, and Exit Ann actions. The command core supports module and update commands as well as `exit` / `quit`.
 
 ## Requirements and Installation
 
@@ -198,6 +198,10 @@ update ann
 security open
 security status
 security alerts
+security pause
+security resume
+security capture start [seconds]
+security capture stop
 ```
 
 ## Versioning Rules

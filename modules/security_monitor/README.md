@@ -40,3 +40,30 @@ The Security Center's **Pause monitoring** control and `security pause` stop
 monitoring only for the current Ann process. Ann automatically resumes the module
 when it is launched again. Packet capture always remains explicitly started and
 time-bounded.
+
+## Module Versioning Rules
+
+Security Monitor follows Ann's root [versioning rules](../../README.md#versioning-rules)
+and uses the `A.B.C` format. `A` remains `0` unless the project owner authorises a
+change; `B` ranges from `0` to `9`; and `C` ranges from `0` to `99`.
+
+- Every completed, committable Security Monitor code change increments the module's
+  `C` version by one. After `C` reaches `99`, the next code change resets `C` to
+  `0` and increments `B` by one.
+- Documentation-only changes do not change the module version.
+- For a module release, update `manifest.json`, this README's Release History, the
+  **Current Module Versions** table in the root README, and add a project-level
+  release note to `CHANGELOG.md` in the same commit.
+- Only when Ann Updater supports distributing Security Monitor must its version,
+  archive URL, compatibility requirements, and permissions also be added to
+  `catalog.json`.
+- At `0.9.99`, do not automatically create the next module version; ask the project
+  owner whether the major component may increase.
+
+## Release History
+
+### 0.1.0
+
+- Initial Security Monitor release with local alert storage, Security Center settings,
+  session-only pause/resume controls, login anomaly rules, and optional time-bounded
+  packet-metadata capture.
