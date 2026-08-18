@@ -82,6 +82,31 @@ Ann Updater reads `catalog.json`, not README, to decide whether an Ann update is
 
 When Ann Core is released, the Ann Updater manifest is bundled with that release and must use the same version. Every optional module must declare its own version in its `manifest.json` and must be listed in the **Current Module Versions** table above. A release must not be published until these values have been checked for consistency.
 
+### Updating `catalog.json`
+
+`catalog.json` is the machine-readable release index used by Ann Updater. It must be updated in the same commit as every Ann Core release, before that commit is pushed to GitHub.
+
+For an Ann Core release:
+
+1. Set `ann_core.version` in `catalog.json` to the new Ann Core version.
+2. Keep `ann_core.archive_url` pointed at the GitHub archive for the release branch or tag.
+3. Set the same version in `Ann_core/manifest.json`, `Ann_core/modules/updater/manifest.json`, `Ann_core/src/ann/__init__.py`, `pyproject.toml`, and `VERSION.md`.
+4. Add the release notes to `CHANGELOG.md`.
+5. Commit and push all of these files together.
+
+For example, Ann Core version `0.0.8` requires this catalog entry:
+
+```json
+{
+  "ann_core": {
+    "version": "0.0.8",
+    "archive_url": "https://github.com/zohanlin2-ai/Ann/archive/refs/heads/master.zip"
+  }
+}
+```
+
+Ann Updater compares the installed Ann Core version with `ann_core.version`. If the catalog version is not higher, it correctly reports that Ann is already current.
+
 ## Security Principles
 
 - Modules should have the minimum permissions needed for their purpose.
