@@ -121,7 +121,7 @@ Modules will declare compatibility with Ann releases rather than relying on the 
 
 ## Updates and Module State
 
-The required **Ann Updater** module uses the configured GitHub catalog to check for, download, and update Ann Core and optional modules. It is always enabled. A successfully downloaded optional module is not automatically enabled: Ann Core records it in the local Module Registry, and the user enables or disables it in **Modules** or through a chat command.
+The required **Ann Updater** module uses the configured GitHub catalog to check for and update Ann Core. It is always enabled and is updated together with Ann Core. Downloading optional modules is not supported yet.
 
 For an Ann Core update, the Updater downloads the new Core into `backup_ann/`. On the next launch, `launcher.py` starts this staged Core first. Once it reports a healthy UI startup, the launcher promotes it to `Ann_core/` and keeps the preceding Core in `rollback_ann/`.
 
@@ -131,10 +131,7 @@ Available chat commands include:
 modules list
 modules enable <module-id>
 modules disable <module-id>
-update list
 update check
-update install <module-id>
-update apply <module-id>
 update ann
 ```
 

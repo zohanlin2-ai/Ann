@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 This project intends to follow the principles of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
-## [0.0.4] - TBD
+## [0.0.5] - TBD
 
 ### Added
 
@@ -35,6 +35,7 @@ This project intends to follow the principles of [Keep a Changelog](https://keep
 ### Changed
 
 - Rename Bubble context-menu actions from `Update…` and `Modules…` to `Update` and `Modules`.
+- Rename the Core update action to `Update Ann` and remove unsupported optional-module download commands.
 
 ### Fixed
 

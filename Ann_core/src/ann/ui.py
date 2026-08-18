@@ -145,7 +145,7 @@ class UpdateDialog(QDialog):
         self.output = QPlainTextEdit(readOnly=True); self.output.setPlainText("Check GitHub for Ann Core and module updates."); layout.addWidget(self.output, 1)
         row = QHBoxLayout()
         check = QPushButton("Check for Updates"); check.clicked.connect(lambda: self._run("update check"))
-        core_update = QPushButton("Update Ann Core"); core_update.clicked.connect(lambda: self._run("update ann"))
+        core_update = QPushButton("Update Ann"); core_update.clicked.connect(lambda: self._run("update ann"))
         row.addWidget(check); row.addWidget(core_update); layout.addLayout(row)
         close = QPushButton("Close"); close.clicked.connect(self.accept); layout.addWidget(close)
 

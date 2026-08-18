@@ -55,9 +55,8 @@ class AnnCore:
                 "  modules list\n"
                 "  modules enable <module-id>\n"
                 "  modules disable <module-id>\n"
-                "  update list | check | ann\n"
-                "  update install <module-id>\n"
-                "  update apply <module-id>\n"
+                "  update check\n"
+                "  update ann\n"
                 "  clear\n"
                 "  exit / quit"
             )
@@ -73,15 +72,10 @@ class AnnCore:
             module_id = original.split(maxsplit=2)[2]
             self.registry.set_enabled(module_id, False)
             return CommandResult(f"Module '{module_id}' is disabled.")
-        if normalized == "update list":
-            return CommandResult(self.updater.list_available())
         if normalized == "update check":
             return CommandResult(self.updater.check())
         if normalized == "update ann":
             return CommandResult(self.updater.stage_core_update())
-        if normalized.startswith("update install ") or normalized.startswith("update apply "):
-            module_id = original.split(maxsplit=2)[2]
-            return CommandResult(self.updater.install_or_update_module(module_id))
         if normalized == "clear":
             return CommandResult("__CLEAR__")
         if normalized in {"exit", "quit"}:

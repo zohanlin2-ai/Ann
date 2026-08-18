@@ -46,13 +46,6 @@ class Updater:
             if actual_hash != expected_hash:
                 raise ValueError("Downloaded file hash does not match the catalog.")
 
-    def list_available(self) -> str:
-        catalog = self._catalog()
-        modules = catalog.get("modules", [])
-        if not modules:
-            return "No optional modules are currently published in the GitHub catalog."
-        return "\n".join(f"{item['id']}  {item['version']}  {item['name']}" for item in modules)
-
     def check(self) -> str:
         catalog = self._catalog()
         messages: list[str] = []
@@ -61,11 +54,7 @@ class Updater:
         messages.append(
             f"Ann Core: {local_core} → {remote_core}" if self._is_newer(remote_core, local_core) else f"Ann Core: {local_core} (current)"
         )
-        available = {item["id"]: item for item in catalog.get("modules", [])}
-        for module in self.registry.list_modules():
-            remote = available.get(module["id"])
-            if remote and self._is_newer(remote["version"], module["version"]):
-                messages.append(f"{module['id']}: {module['version']} → {remote['version']}")
+        messages.append(f"Ann Updater: {local_core} (bundled with Ann Core)")
         return "\n".join(messages)
 
     def stage_core_update(self) -> str:
@@ -89,34 +78,3 @@ class Updater:
                 raise ValueError("The GitHub archive does not contain a valid Ann_core directory.")
             shutil.copytree(candidates[0], target)
         return "Ann Core was staged in backup_ann. Restart Ann to validate and promote it."
-
-    def install_or_update_module(self, module_id: str) -> str:
-        catalog = self._catalog()
-        item = next((entry for entry in catalog.get("modules", []) if entry["id"] == module_id), None)
-        if item is None:
-            return f"Module '{module_id}' is not available in the GitHub catalog."
-        if item.get("system"):
-            return "The Ann Updater is bundled with Ann Core and cannot be downloaded separately."
-        with tempfile.TemporaryDirectory() as temporary_name:
-            temporary = Path(temporary_name)
-            archive = temporary / "module.zip"
-            self._download(item["archive_url"], archive, item.get("sha256"))
-            extracted = temporary / "extracted"
-            extracted.mkdir()
-            self._safe_extract(archive, extracted)
-            manifests = list(extracted.rglob("manifest.json"))
-            if len(manifests) != 1:
-                raise ValueError("The module archive must contain exactly one manifest.json.")
-            manifest = json.loads(manifests[0].read_text(encoding="utf-8"))
-            if manifest.get("id") != module_id or not manifest.get("version"):
-                raise ValueError("The module manifest does not match the requested module.")
-            destination = self.project_root / "modules" / "downloaded" / module_id.replace(".", "_")
-            replacement = destination.with_name(destination.name + ".new")
-            if replacement.exists():
-                shutil.rmtree(replacement)
-            shutil.copytree(manifests[0].parent, replacement)
-            if destination.exists():
-                shutil.rmtree(destination)
-            replacement.replace(destination)
-            self.registry.register_download(manifest, destination)
-        return f"Module '{module_id}' {manifest['version']} was downloaded. Enable it in Module List when ready."
