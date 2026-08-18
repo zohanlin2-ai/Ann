@@ -121,6 +121,8 @@ Modules will declare compatibility with Ann releases rather than relying on the 
 
 Ann uses the version format `A.B.C`.
 
+The current release is recorded in [VERSION.md](VERSION.md). `VERSION.md`, `pyproject.toml`, and `CHANGELOG.md` must be kept consistent whenever the Ann Core version changes.
+
 - `A` is fixed at `0` unless the project owner explicitly authorizes a change.
 - `B` ranges from `0` to `9`.
 - `C` ranges from `0` to `99`.
