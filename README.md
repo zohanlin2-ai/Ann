@@ -78,9 +78,9 @@ Ann Updater reads `catalog.json`, not README, to decide whether an Ann update is
 - `Ann_core/manifest.json`
 - `Ann_core/src/ann/__init__.py`
 - `pyproject.toml`
-- The Ann Core row in `VERSION.md`
+- The Ann Core and every catalog-managed module row in `VERSION.md`
 
-When Ann Core is released, the Ann Updater manifest is bundled with that release and must use the same version. Every optional module must declare its own version in its `manifest.json` and must be listed in the **Current Module Versions** table above. A release must not be published until these values have been checked for consistency.
+When Ann Core is released, the Ann Updater manifest is bundled with that release and must use the same version. Every optional module must declare its own version in its `manifest.json` and must be listed in both `VERSION.md` and the **Current Module Versions** table above. A release must not be published until these values have been checked for consistency.
 
 ### Updating `catalog.json`
 
@@ -218,7 +218,11 @@ security capture stop
 
 Ann uses the version format `A.B.C`.
 
-The current release is recorded in [VERSION.md](VERSION.md). `VERSION.md`, `pyproject.toml`, and `CHANGELOG.md` must be kept consistent whenever the Ann Core version changes.
+The current release and every current module version are recorded in [VERSION.md](VERSION.md). Its **Version History** retains only the newest Ann Core release summary; `CHANGELOG.md` is the complete release history. `VERSION.md`, `pyproject.toml`, and `CHANGELOG.md` must be kept consistent whenever the Ann Core version changes.
+
+### `VERSION.md` Document Rules
+
+`VERSION.md` is the single current-version reference for Ann. It must list Ann Core and every module currently included with Ann, with each module's current version. Its **Version History** contains only the latest Ann Core version's summary. Previous version notes and the complete chronological history belong in `CHANGELOG.md`.
 
 - `A` is fixed at `0` unless the project owner explicitly authorizes a change.
 - `B` ranges from `0` to `9`.
