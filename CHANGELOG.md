@@ -11,6 +11,9 @@ This project intends to follow the principles of [Keep a Changelog](https://keep
 - Initial project documentation for Ann.
 - A modular architecture direction for the Ann AI Assistant.
 - A GitHub-based module catalog and update concept.
+- Python project metadata and pinned runtime dependency records.
+- Dependency-aware application launcher that reports missing or incompatible packages.
+- Initial PySide6 desktop interface with a draggable status bubble and command chat window.
 
 ## [0.1.0] - TBD
 

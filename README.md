@@ -68,7 +68,27 @@ The exact catalog format and update mechanism will be defined with the first wor
 
 ## Status
 
-Ann is in its initial design stage. The first implementation milestone is a small runnable core that discovers a sample module, reports installed modules, and routes a basic request to an enabled module.
+Ann currently includes its first desktop UI milestone: a draggable status bubble with a glowing state ring and a command-only chat window. The command core currently supports `help`, `status`, `modules list`, and `clear`.
+
+## Requirements and Installation
+
+### Technology and Dependency Record
+
+Ann is currently written in **Python** and uses **PySide6** for its desktop interface. This table is the single human-readable record of the runtime environment. Whenever a dependency changes, this table, `requirements.txt`, and `pyproject.toml` must be updated in the same change.
+
+| Item | Required version | Purpose |
+| --- | --- | --- |
+| Python | 3.11 or newer | Ann core, module runtime, and launcher |
+| PySide6 | 6.8.0 | Desktop bubble, status ring, and command window |
+
+`requirements.txt` and `pyproject.toml` contain the same pinned dependency information in machine-readable form so installation and startup checks can use it reliably.
+
+```bash
+python -m pip install -r requirements.txt
+python main.py
+```
+
+`main.py` checks required packages and versions before Ann starts. If a package is missing or incompatible, it stops and prints the exact installation command. It does not install packages automatically.
 
 ## License
 
