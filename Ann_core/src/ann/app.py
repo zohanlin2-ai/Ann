@@ -6,6 +6,7 @@ import os
 import sys
 from pathlib import Path
 
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from ann.core import AnnCore
@@ -15,6 +16,15 @@ from ann.version_info import current_release_text
 
 def show_about(parent: Bubble) -> None:
     QMessageBox.about(parent, "About Ann", f"Ann\n\n{current_release_text()}\n\nRuntime\nPython: {sys.version.split()[0]}")
+
+
+def show_security(parent: Bubble, core: AnnCore) -> None:
+    module = core.get_module("ann.security-monitor")
+    dialog_factory = getattr(module, "create_dialog", None) if module else None
+    if not callable(dialog_factory):
+        QMessageBox.information(parent, "Security Center", "Security Monitor is disabled or unavailable. Enable it in Modules first.")
+        return
+    dialog_factory(parent).exec()
 
 
 def main() -> int:
@@ -29,8 +39,15 @@ def main() -> int:
     bubble.clicked.connect(chat.showNormal)
     chat.status_changed.connect(bubble.set_status)
     chat.exit_requested.connect(app.quit)
-    bubble.update_requested.connect(lambda: UpdateDialog(core).exec())
+    chat.restart_requested.connect(app.quit)
+    def show_update() -> None:
+        dialog = UpdateDialog(core)
+        dialog.restart_requested.connect(app.quit)
+        dialog.exec()
+
+    bubble.update_requested.connect(show_update)
     bubble.modules_requested.connect(lambda: ModuleListDialog(core).exec())
+    bubble.security_requested.connect(lambda: show_security(bubble, core))
     bubble.about_requested.connect(lambda: show_about(bubble))
     bubble.exit_requested.connect(app.quit)
     bubble.move_to_bottom_right()

@@ -4,12 +4,23 @@
 
 | Component | Version | Notes |
 | --- | --- | --- |
-| Ann Core | 0.0.5 | Ann-only GitHub updater and module registry |
+| Ann Core | 0.0.7 | Full-project verified automatic updater |
 | Python | >=3.10 | Development runtime |
 | PySide6 | 6.8.0.2 | Desktop UI framework |
 | Module Catalog Schema | 1 | GitHub catalog format |
 
 ## Version History
+
+### 0.0.7
+
+- Download and validate a complete staged Ann project before applying it automatically.
+- Preserve local virtual environments, Git history, Module Registry, downloaded modules, and the stable launcher during updates.
+
+### 0.0.6
+
+- Add local optional-module discovery and safe enabled-module loading.
+- Add the Ann Security Monitor MVP and Security Center settings UI.
+- Add session-only security pause and resume controls.
 
 ### 0.0.5
 

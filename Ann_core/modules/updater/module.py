@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
+import subprocess
+import sys
 import tempfile
 import urllib.request
 import zipfile
@@ -57,15 +60,18 @@ class Updater:
         messages.append(f"Ann Updater: {local_core} (bundled with Ann Core)")
         return "\n".join(messages)
 
-    def stage_core_update(self) -> str:
+    def stage_project_update(self):
+        """Download, verify, and schedule a complete Ann project replacement."""
+        from ann.core import CommandResult
+
         catalog = self._catalog()
         item = catalog["ann_core"]
-        local = json.loads((self.core_root / "modules" / "updater" / "manifest.json").read_text(encoding="utf-8"))["version"]
+        local = json.loads((self.core_root / "manifest.json").read_text(encoding="utf-8"))["version"]
         if not self._is_newer(item["version"], local):
-            return "Ann Core is already current."
+            return CommandResult("Ann is already current.")
         target = self.project_root / "backup_ann"
         if target.exists():
-            return "A staged Core already exists. Restart Ann to validate it before downloading another update."
+            return CommandResult("A staged Ann project already exists. Restart Ann to finish or inspect the pending update.")
         with tempfile.TemporaryDirectory() as temporary_name:
             temporary = Path(temporary_name)
             archive = temporary / "ann_core.zip"
@@ -73,8 +79,30 @@ class Updater:
             extracted = temporary / "extracted"
             extracted.mkdir()
             self._safe_extract(archive, extracted)
-            candidates = [path.parent for path in extracted.rglob("main.py") if path.parent.name == "Ann_core"]
-            if len(candidates) != 1 or not (candidates[0] / "src" / "ann").is_dir():
-                raise ValueError("The GitHub archive does not contain a valid Ann_core directory.")
+            candidates = [path for path in extracted.iterdir() if (path / "Ann_core" / "main.py").is_file()]
+            if len(candidates) != 1:
+                raise ValueError("The GitHub archive does not contain a valid Ann project directory.")
             shutil.copytree(candidates[0], target)
-        return "Ann Core was staged in backup_ann. Restart Ann to validate and promote it."
+
+        environment = os.environ.copy()
+        environment["ANN_PROJECT_ROOT"] = str(target)
+        environment["ANN_CORE_DIR"] = str(target / "Ann_core")
+        environment["QT_QPA_PLATFORM"] = "offscreen"
+        verification = subprocess.run(
+            [sys.executable, str(target / "Ann_core" / "main.py"), "--verify-update"],
+            cwd=target,
+            env=environment,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if verification.returncode != 0:
+            details = verification.stderr.strip() or verification.stdout.strip() or "unknown validation failure"
+            return CommandResult(f"Ann update validation failed; backup_ann was preserved for inspection: {details}")
+
+        subprocess.Popen(
+            [sys.executable, str(self.project_root / "launcher.py"), "--apply-update", "--wait-for", str(os.getpid())],
+            cwd=self.project_root,
+            env=os.environ.copy(),
+        )
+        return CommandResult("Ann update was downloaded and verified. Ann will restart to apply it.", restart_for_update=True)

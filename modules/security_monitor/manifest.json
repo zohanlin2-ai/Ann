@@ -1,0 +1,12 @@
+{
+  "id": "ann.security-monitor",
+  "name": "Ann Security Monitor",
+  "version": "0.1.0",
+  "entry_point": "module.py",
+  "default_enabled": true,
+  "description": "Read-only login and network metadata monitoring with a local Security Center.",
+  "permissions": {
+    "local_storage": "Stores security events, alerts, and settings in Ann's local data directory.",
+    "network_capture": "Disabled by default. When explicitly started, captures network metadata only; administrator privileges and Npcap may be required."
+  }
+}

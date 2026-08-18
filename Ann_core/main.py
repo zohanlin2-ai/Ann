@@ -39,6 +39,10 @@ if __name__ == "__main__":
     if not verify_dependencies():
         raise SystemExit(1)
     sys.path.insert(0, str(CORE_ROOT / "src"))
+    if "--verify-update" in sys.argv:
+        from ann.verify_update import verify_update
+
+        raise SystemExit(0 if verify_update(PROJECT_ROOT, CORE_ROOT) else 1)
     from ann.app import main
 
     raise SystemExit(main())

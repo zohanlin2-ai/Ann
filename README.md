@@ -28,7 +28,7 @@ Ann/
 │   ├── main.py
 │   ├── src/ann/
 │   └── modules/updater/          # Required GitHub update module
-├── backup_ann/                   # Staged Core update; created at runtime
+├── backup_ann/                   # Staged complete project update; created at runtime
 ├── modules/
 │   ├── registry.json             # Local enabled/disabled module state
 │   └── downloaded/               # Downloaded optional modules
@@ -123,7 +123,7 @@ Modules will declare compatibility with Ann releases rather than relying on the 
 
 The required **Ann Updater** module uses the configured GitHub catalog to check for and update Ann Core. It is always enabled and is updated together with Ann Core. Downloading optional modules is not supported yet.
 
-For an Ann Core update, the Updater downloads the new Core into `backup_ann/`. On the next launch, `launcher.py` starts this staged Core first. Once it reports a healthy UI startup, the launcher promotes it to `Ann_core/` and keeps the preceding Core in `rollback_ann/`.
+For an Ann update, the Updater downloads the complete GitHub project into `backup_ann/` and runs a headless validation of the staged project. If validation succeeds, Ann closes and the stable `launcher.py` automatically applies the update and restarts Ann. The updater preserves `.venv`, `.git`, local module state, and `launcher.py`; replaced managed project files are saved in `rollback_ann/`.
 
 Available chat commands include:
 
@@ -133,6 +133,9 @@ modules enable <module-id>
 modules disable <module-id>
 update check
 update ann
+security open
+security status
+security alerts
 ```
 
 ## Versioning Rules

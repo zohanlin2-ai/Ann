@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
-from ann.module_runtime import load_updater
+from ann.module_runtime import load_enabled_modules, load_updater
 from ann.registry import ModuleRegistry
 
 
@@ -22,6 +22,7 @@ class AnnStatus(str, Enum):
 class CommandResult:
     text: str
     status: AnnStatus = AnnStatus.READY
+    restart_for_update: bool = False
 
 
 class AnnCore:
@@ -29,6 +30,10 @@ class AnnCore:
         self.awaiting_exit_confirmation = False
         self.registry = ModuleRegistry(project_root, core_root)
         self.updater = load_updater(project_root, core_root, self.registry)
+        self.modules, self.module_load_errors = load_enabled_modules(project_root, self.registry)
+
+    def get_module(self, module_id: str) -> object | None:
+        return self.modules.get(module_id)
 
     def execute(self, command: str) -> CommandResult:
         command = command.strip()
@@ -57,6 +62,9 @@ class AnnCore:
                 "  modules disable <module-id>\n"
                 "  update check\n"
                 "  update ann\n"
+                "  security open\n"
+                "  security status\n"
+                "  security alerts\n"
                 "  clear\n"
                 "  exit / quit"
             )
@@ -75,10 +83,16 @@ class AnnCore:
         if normalized == "update check":
             return CommandResult(self.updater.check())
         if normalized == "update ann":
-            return CommandResult(self.updater.stage_core_update())
+            return self.updater.stage_project_update()
         if normalized == "clear":
             return CommandResult("__CLEAR__")
         if normalized in {"exit", "quit"}:
             self.awaiting_exit_confirmation = True
             return CommandResult("Exit Ann? (Y/N)", AnnStatus.ATTENTION)
+        for module in self.modules.values():
+            handler = getattr(module, "handle_command", None)
+            if callable(handler):
+                response = handler(original)
+                if response is not None:
+                    return CommandResult(response)
         return CommandResult(f"Unknown command: {original}\nType 'help' for available commands.", AnnStatus.ATTENTION)

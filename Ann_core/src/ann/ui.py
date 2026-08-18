@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QPoint, Qt, Signal
+from PySide6.QtCore import QPoint, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QFont, QGuiApplication, QPainter, QPen
 from PySide6.QtWidgets import (
     QCheckBox, QDialog, QHBoxLayout, QLabel, QLineEdit, QMenu, QMessageBox,
@@ -19,6 +19,7 @@ class Bubble(QWidget):
     clicked = Signal()
     update_requested = Signal()
     modules_requested = Signal()
+    security_requested = Signal()
     about_requested = Signal()
     exit_requested = Signal()
 
@@ -75,12 +76,13 @@ class Bubble(QWidget):
         menu = QMenu(self)
         update = menu.addAction("Update")
         modules = menu.addAction("Modules")
+        security = menu.addAction("Security Center")
         menu.addSeparator()
         about = menu.addAction("About Ann")
         menu.addSeparator()
         exit_ann = menu.addAction("Exit Ann")
         selected = menu.exec(event.globalPos())
-        signals = {update: self.update_requested, modules: self.modules_requested, about: self.about_requested, exit_ann: self.exit_requested}
+        signals = {update: self.update_requested, modules: self.modules_requested, security: self.security_requested, about: self.about_requested, exit_ann: self.exit_requested}
         if selected in signals:
             signals[selected].emit()
 
@@ -88,6 +90,7 @@ class Bubble(QWidget):
 class ChatWindow(QDialog):
     status_changed = Signal(AnnStatus)
     exit_requested = Signal()
+    restart_requested = Signal()
 
     def __init__(self, core: AnnCore) -> None:
         super().__init__(); self.core = core
@@ -114,6 +117,7 @@ class ChatWindow(QDialog):
         else: self._append(result.text, "Ann")
         self.status_changed.emit(result.status)
         if result.status is AnnStatus.OFFLINE: self.exit_requested.emit()
+        if result.restart_for_update: QTimer.singleShot(500, self.restart_requested.emit)
 
     def closeEvent(self, event) -> None:  # type: ignore[override]
         event.ignore(); self.hide()
@@ -138,6 +142,8 @@ class ModuleListDialog(QDialog):
 
 
 class UpdateDialog(QDialog):
+    restart_requested = Signal()
+
     def __init__(self, core: AnnCore) -> None:
         super().__init__(); self.core = core
         self.setWindowTitle("Update"); self.setMinimumSize(480, 300)
@@ -150,4 +156,7 @@ class UpdateDialog(QDialog):
         close = QPushButton("Close"); close.clicked.connect(self.accept); layout.addWidget(close)
 
     def _run(self, command: str) -> None:
-        self.output.setPlainText(self.core.execute(command).text)
+        result = self.core.execute(command)
+        self.output.setPlainText(result.text)
+        if result.restart_for_update:
+            QTimer.singleShot(500, self.restart_requested.emit)

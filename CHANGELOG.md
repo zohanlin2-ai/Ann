@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 This project intends to follow the principles of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
+## [0.0.7] - TBD
+
+### Changed
+
+- Update Ann now downloads, verifies, and automatically applies a complete Ann project update after Ann closes.
+- Preserve local virtual environments, Git history, Module Registry, downloaded modules, and the stable launcher during updates.
+
+## [0.0.6] - TBD
+
+### Added
+
+- Local optional-module discovery and enabled-module runtime loading.
+- Ann Security Monitor, including a Security Center, session-only pause/resume controls, local alert storage, and optional time-bounded packet-metadata capture.
+
+### Changed
+
+- Ann's Bubble context menu now exposes Security Center when the Security Monitor is enabled.
+
 ## [0.0.5] - TBD
 
 ### Added

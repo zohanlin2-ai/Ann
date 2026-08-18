@@ -18,6 +18,7 @@ class ModuleRegistry:
         self.registry_path.parent.mkdir(parents=True, exist_ok=True)
         self.data = self._read()
         self._ensure_updater()
+        self._discover_local_modules()
         self._write()
 
     def _read(self) -> dict:
@@ -53,6 +54,34 @@ class ModuleRegistry:
             "enabled": True,
             "system": True,
         }
+
+    def _discover_local_modules(self) -> None:
+        """Register trusted modules placed locally by the Ann owner.
+
+        Downloaded modules will use a stricter installer in a later release. This
+        discovery step intentionally only considers the local `modules/<name>`
+        directories that are already inside the user's Ann project.
+        """
+        modules_root = self.project_root / "modules"
+        for manifest_path in modules_root.glob("*/manifest.json"):
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            module_id = manifest.get("id", "")
+            if not VALID_ID.fullmatch(module_id):
+                continue
+            module_path = manifest_path.parent
+            entry_point = module_path / manifest.get("entry_point", "")
+            if not manifest.get("entry_point") or not entry_point.is_file():
+                continue
+            existing = self.data["modules"].get(module_id, {})
+            self.data["modules"][module_id] = {
+                "id": module_id,
+                "name": manifest.get("name", module_id),
+                "version": manifest.get("version", "0.0.0"),
+                "path": str(module_path.relative_to(self.project_root)).replace("\\", "/"),
+                "source": "Local",
+                "enabled": existing.get("enabled", manifest.get("default_enabled", False)),
+                "system": False,
+            }
 
     def list_modules(self) -> list[dict]:
         return sorted(self.data["modules"].values(), key=lambda module: module["id"])
