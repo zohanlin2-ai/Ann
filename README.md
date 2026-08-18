@@ -57,11 +57,11 @@ A module manifest is expected to describe at least:
 
 The following table lists every module currently included with Ann. Ann Core and Ann Updater are required system modules; Ann Security Monitor is currently the only optional module.
 
-| Module ID | Module | Version | Type | Default state |
-| --- | --- | --- | --- | --- |
-| `ann.core` | Ann Core | 0.0.8 | Required system module | Enabled |
-| `ann.updater` | Ann Updater | 0.0.8 | Required system module | Enabled |
-| `ann.security-monitor` | Ann Security Monitor | 0.1.0 | Optional module | Enabled |
+| Module ID | Module | Version | Type | Default state | Summary |
+| --- | --- | --- | --- | --- | --- |
+| `ann.core` | Ann Core | 0.0.8 | Required system module | Enabled | Desktop UI, command routing, registry, and module runtime. |
+| `ann.updater` | Ann Updater | 0.0.8 | Required system module | Enabled | Checks, verifies, and applies full-project Ann updates. |
+| `ann.security-monitor` | Ann Security Monitor | 0.1.0 | Optional module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center. |
 
 ## Module Catalog and Updates
 

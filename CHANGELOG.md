@@ -10,6 +10,7 @@ This project intends to follow the principles of [Keep a Changelog](https://keep
 
 - The root dependency installation flow now includes Security Monitor packet-capture support.
 - Align Security Monitor documentation with Ann's module versioning and release-maintenance rules.
+- Add a top-level Security Monitor catalog description.
 
 ## [0.0.7] - TBD
 
