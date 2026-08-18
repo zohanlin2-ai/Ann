@@ -4,3 +4,8 @@ __pycache__/
 venv/
 .idea/
 .vscode/
+backup_ann/
+rollback_ann/
+.ann_trial_ready
+modules/registry.json
+modules/downloaded/

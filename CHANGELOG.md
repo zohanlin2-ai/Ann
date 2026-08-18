@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 This project intends to follow the principles of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.0.3] - TBD
 
 ### Added
 
@@ -26,6 +26,10 @@ This project intends to follow the principles of [Keep a Changelog](https://keep
 - Bubble right-click menu with Update, About Ann, and Exit Ann actions.
 - About Ann dialog that displays the declared current-release information from `VERSION.md`.
 - `exit` and `quit` commands with case-insensitive Y/N confirmation.
+- Modular `Ann_core/` directory, root launcher, and staged `backup_ann/` Core update flow.
+- GitHub-backed Ann Updater system module and catalog format.
+- Persistent Module Registry, Module List checkboxes, and module enable/disable commands.
+- Chat commands for checking, downloading, and applying Core or module updates.
 
 ### Fixed
 

@@ -1,0 +1,9 @@
+{
+  "id": "ann.updater",
+  "name": "Ann Updater",
+  "version": "0.0.3",
+  "entry_point": "module.py",
+  "system": true,
+  "default_enabled": true,
+  "description": "Downloads Ann Core and module updates from the configured GitHub catalog."
+}

@@ -4,12 +4,18 @@
 
 | Component | Version | Notes |
 | --- | --- | --- |
-| Ann Core | 0.0.2 | Bubble controls and command exit support |
+| Ann Core | 0.0.3 | Modular Core, GitHub updater, and module registry |
 | Python | >=3.10 | Development runtime |
 | PySide6 | 6.8.0.2 | Desktop UI framework |
-| Module Catalog Schema | 1 | Planned |
+| Module Catalog Schema | 1 | GitHub catalog format |
 
 ## Version History
+
+### 0.0.3
+
+- Move Ann Core into `Ann_core/` and add the stable root launcher.
+- Add the GitHub-backed Ann Updater, module registry, and staged Core update flow.
+- Add Module List checkboxes and module/update chat commands.
 
 ### 0.0.2
 

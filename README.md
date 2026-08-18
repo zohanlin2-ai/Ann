@@ -23,16 +23,18 @@ The core should not depend on a particular module. A module declares its identit
 
 ```text
 Ann/
-├── src/
-│   ├── ann/                     # Core application
-│   └── modules/                 # Installed modules
-│       └── example-module/
-│           ├── module.py         # Module implementation
-│           ├── manifest.json     # Module metadata and compatibility
-│           ├── README.md         # Complete module documentation
-│           └── tests/            # Module-specific tests
-├── tests/                        # Core tests
+├── launcher.py                   # Stable Core selector and trial launcher
+├── Ann_core/                     # Active modular Ann Core
+│   ├── main.py
+│   ├── src/ann/
+│   └── modules/updater/          # Required GitHub update module
+├── backup_ann/                   # Staged Core update; created at runtime
+├── modules/
+│   ├── registry.json             # Local enabled/disabled module state
+│   └── downloaded/               # Downloaded optional modules
+├── catalog.json                  # GitHub module and Core catalog
 ├── README.md                     # This overview
+├── VERSION.md                    # Current release information
 └── CHANGELOG.md                  # Project-level release history
 ```
 
@@ -68,7 +70,7 @@ The exact catalog format and update mechanism will be defined with the first wor
 
 ## Status
 
-Ann currently includes its first desktop UI milestone: a draggable status bubble with a glowing state ring and a command-only chat window. The Bubble starts in the primary screen's bottom-right corner. Its context menu provides Update, About Ann, and Exit Ann actions. The command core currently supports `help`, `status`, `modules list`, `clear`, and `exit` / `quit`.
+Ann currently includes its first desktop UI milestone: a draggable status bubble with a glowing state ring and a command-only chat window. The Bubble starts in the primary screen's bottom-right corner. Its context menu provides Update, Modules, About Ann, and Exit Ann actions. The command core supports module and update commands as well as `exit` / `quit`.
 
 ## Requirements and Installation
 
@@ -92,7 +94,7 @@ In PowerShell, from the project directory:
 ```powershell
 py -3.10 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe main.py
+.\.venv\Scripts\python.exe launcher.py
 ```
 
 If the Python Launcher cannot resolve the desired version, replace `py -3.10` in the first command with the full path to an installed CPython executable:
@@ -104,10 +106,10 @@ If the Python Launcher cannot resolve the desired version, replace `py -3.10` in
 After the environment has been created, start Ann with:
 
 ```powershell
-.\.venv\Scripts\python.exe main.py
+.\.venv\Scripts\python.exe launcher.py
 ```
 
-`main.py` checks required packages and versions before Ann starts. If a package is missing or incompatible, it stops and prints the exact installation command. It does not install packages automatically.
+`Ann_core/main.py` checks required packages and versions before Ann starts. If a package is missing or incompatible, it stops and prints the exact installation command. It does not install packages automatically.
 
 ## Development and Distribution
 
@@ -116,6 +118,25 @@ During development, Ann runs in a project-specific Python virtual environment. T
 End users will not be expected to install, configure, or manage Python. A future release build will bundle Ann, its Python runtime, and its required dependencies into a native Windows application and installer. The bundled runtime will be controlled by Ann, so it will not depend on or conflict with Python versions already installed on the user's computer.
 
 Modules will declare compatibility with Ann releases rather than relying on the user's system Python version. The exact packaging tool and release workflow will be selected before the first distributable release.
+
+## Updates and Module State
+
+The required **Ann Updater** module uses the configured GitHub catalog to check for, download, and update Ann Core and optional modules. It is always enabled. A successfully downloaded optional module is not automatically enabled: Ann Core records it in the local Module Registry, and the user enables or disables it in **Modules…** or through a chat command.
+
+For an Ann Core update, the Updater downloads the new Core into `backup_ann/`. On the next launch, `launcher.py` starts this staged Core first. Once it reports a healthy UI startup, the launcher promotes it to `Ann_core/` and keeps the preceding Core in `rollback_ann/`.
+
+Available chat commands include:
+
+```text
+modules list
+modules enable <module-id>
+modules disable <module-id>
+update list
+update check
+update install <module-id>
+update apply <module-id>
+update ann
+```
 
 ## Versioning Rules
 
