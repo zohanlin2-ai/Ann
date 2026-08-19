@@ -55,10 +55,10 @@ not by itself change this module's version.
 - Every completed, committable Security Monitor code change increments Security
   Monitor's own version under the root `A.B.C` rules.
 - Documentation-only changes do not change the module version.
-- For a module release, update `manifest.json`, this README's Release History, the
-  **Current Module Versions** table in the root README, `VERSION.md`,
-  `catalog.json`, and add a project-level release note to `CHANGELOG.md` in the
-  same commit.
+- For a module release, update `manifest.json`, this README's Release History,
+  `VERSION.md`, `catalog.json`, and add a project-level release note to
+  `CHANGELOG.md` in the same commit. Update the root README only when the module
+  is newly included or its summary changes.
 - At `0.9.99`, do not automatically create the next release version; ask the
   project owner whether the major component may increase.
 

@@ -77,15 +77,15 @@ Every module must:
 
 Before release, test the module enabled and disabled, check missing-dependency handling, verify its permissions, and verify its catalog/update behaviour when it is catalog-managed.
 
-### Current Module Versions
+### Current Modules
 
-The following table lists every module currently included with Ann. Ann Core and Ann Updater are required system modules; Ann Security Monitor is currently the only optional module.
+The following table provides a short catalog of every module currently included with Ann. Ann Core and Ann Updater are required system modules; Ann Security Monitor is currently the only optional module. Current module versions and latest modification logs are recorded only in `VERSION.md`.
 
-| Module ID | Module | Version | Type | Default state | Summary |
-| --- | --- | --- | --- | --- | --- |
-| `ann.core` | Ann Core | 0.0.13 | Required system module | Enabled | Desktop UI, command routing, registry, module runtime, and update recovery. |
-| `ann.updater` | Ann Updater | 0.0.13 | Required system module | Enabled | Checks, verifies, and applies full-project Ann updates. |
-| `ann.security-monitor` | Ann Security Monitor | 0.0.13 | Optional module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center. |
+| Module ID | Module | Type | Default state | Summary |
+| --- | --- | --- | --- | --- |
+| `ann.core` | Ann Core | Required system module | Enabled | Desktop UI, command routing, registry, module runtime, and update recovery. |
+| `ann.updater` | Ann Updater | Required system module | Enabled | Checks, verifies, and applies full-project Ann updates. |
+| `ann.security-monitor` | Ann Security Monitor | Optional module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center. |
 
 ## Version and Release Management
 
@@ -130,7 +130,7 @@ Ann Updater reads `catalog.json`, not README, to decide whether an Ann update is
 - `pyproject.toml`
 - The Ann Core row in `VERSION.md`
 
-Every catalog-managed module must declare its own version in `manifest.json` and must be listed in both `VERSION.md` and the **Current Module Versions** table above. Each catalog entry must match that module's manifest ID and version. A release must not be published until these values have been checked for consistency. Ann Core changes do not require version changes to Ann Updater or optional modules unless their own code changes.
+Every catalog-managed module must declare its own version in `manifest.json` and must be listed in `VERSION.md`. Each catalog entry must match that module's manifest ID and version. A release must not be published until these values have been checked for consistency. Ann Core changes do not require version changes to Ann Updater or optional modules unless their own code changes.
 
 ### Updating `catalog.json`
 
@@ -166,10 +166,10 @@ When a module is added or its code changes, first read and follow the **Module D
 
 1. Keep the module implementation, `manifest.json`, and detailed module `README.md` in the same module directory.
 2. Increment and set only that module's own version in its `manifest.json`.
-3. Add or update that module in the **Current Module Versions** table in this README.
+3. Add the module to the **Current Modules** table in this README when it is newly included with Ann; do not add versions to that table.
 4. Record the module's latest modification log in `VERSION.md`, add a module-specific release note to its README, and add a project-level note to `CHANGELOG.md`.
 5. If the module is part of an Ann release, add its ID, display name, version, and manifest path to `catalog.json` so Ann Updater can verify it. Add archive URLs, compatibility requirements, and permissions when the module is independently distributed in the future.
-6. Commit and push the module code, manifest, README, catalog entry when applicable, and version documentation together.
+6. Commit and push the module code, manifest, README when it is newly included, catalog entry when applicable, and version documentation together.
 
 For example, the current Ann Security Monitor module is maintained in `modules/security_monitor/` with its implementation, `manifest.json`, detailed README, tests, and its current module version (`0.0.13`).
 
