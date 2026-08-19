@@ -52,12 +52,12 @@ class SecurityCenterDialog(QDialog):
 
     def _privacy(self) -> QWidget:
         page = QWidget(); form = QFormLayout(page)
-        settings = self.monitor.store.settings()
+        settings = self.monitor.store.settings() if self.monitor.store else {"retention_days": 30, "failed_login_threshold": 5, "syn_scan_threshold": 20}
         self.retention = QSpinBox(); self.retention.setRange(1, 365); self.retention.setValue(settings["retention_days"])
         self.failed = QSpinBox(); self.failed.setRange(2, 100); self.failed.setValue(settings["failed_login_threshold"])
         self.syn = QSpinBox(); self.syn.setRange(5, 1000); self.syn.setValue(settings["syn_scan_threshold"])
         form.addRow("Keep event data (days)", self.retention); form.addRow("Failed logins before alert", self.failed); form.addRow("Distinct SYN ports before alert", self.syn)
-        save = QPushButton("Save settings"); save.clicked.connect(self.save_settings); form.addRow(save)
+        self.save_button = QPushButton("Save settings"); self.save_button.clicked.connect(self.save_settings); form.addRow(self.save_button)
         return page
 
     def _permissions(self) -> QWidget:
@@ -68,6 +68,14 @@ class SecurityCenterDialog(QDialog):
         layout.addStretch(); return page
 
     def refresh(self) -> None:
+        if not self.monitor.is_running or self.monitor.store is None or self.monitor.capture is None:
+            self.status.setText("● Security Monitor is stopped or unavailable")
+            self.summary.setText("Start Security Monitor from Module List before using Security Center.")
+            self.alert_list.clear()
+            self.capture_button.setEnabled(False)
+            self.pause_button.setEnabled(False)
+            self.save_button.setEnabled(False)
+            return
         data = self.monitor.store.dashboard(); running = self.monitor.capture.active
         if self.monitor.paused:
             status = "Paused for this Ann session"
@@ -81,8 +89,12 @@ class SecurityCenterDialog(QDialog):
         self.capture_button.setText("Stop network monitoring" if running else "Start network monitoring (30 sec)")
         self.pause_button.setText("Resume monitoring" if self.monitor.paused else "Pause monitoring")
         self.capture_button.setEnabled(not self.monitor.paused)
+        self.pause_button.setEnabled(True)
+        self.save_button.setEnabled(True)
 
     def toggle_pause(self) -> None:
+        if not self.monitor.is_running:
+            return
         if self.monitor.paused:
             self.monitor.resume()
         else:
@@ -90,8 +102,10 @@ class SecurityCenterDialog(QDialog):
         self.refresh()
 
     def toggle_capture(self) -> None:
+        if not self.monitor.is_running or self.monitor.capture is None:
+            return
         if self.monitor.capture.active:
-            self.monitor.capture.stop(); self.monitor.store.audit("capture_stopped", "Stopped from Security Center."); self.refresh(); return
+            self.monitor.stop_capture("Stopped from Security Center."); self.refresh(); return
         choice = QMessageBox.question(self, "Start network monitoring?", "Ann will collect network metadata only for up to 30 seconds. It will not store packet contents, decrypt traffic, or block connections. Continue?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if choice != QMessageBox.Yes:
             return
@@ -99,12 +113,14 @@ class SecurityCenterDialog(QDialog):
             QMessageBox.information(self, "Security Center", "Resume monitoring before starting network capture.")
             return
         try:
-            self.monitor.capture.start(30)
-            self.monitor.store.audit("capture_started", "Started from Security Center for up to 30 seconds.")
+            self.monitor.start_capture(30)
         except (RuntimeError, OSError) as error:
             QMessageBox.warning(self, "Network monitoring unavailable", str(error))
         self.refresh()
 
     def save_settings(self) -> None:
+        if not self.monitor.is_running or self.monitor.store is None:
+            QMessageBox.information(self, "Security Center", "Security Monitor is stopped or unavailable.")
+            return
         self.monitor.store.save_settings({"retention_days": self.retention.value(), "failed_login_threshold": self.failed.value(), "syn_scan_threshold": self.syn.value()})
         QMessageBox.information(self, "Security Center", "Settings saved.")

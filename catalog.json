@@ -15,7 +15,7 @@
     {
       "id": "ann.security-monitor",
       "name": "Ann Security Monitor",
-      "version": "0.0.13",
+      "version": "0.0.14",
       "manifest_path": "modules/security_monitor/manifest.json"
     }
   ]

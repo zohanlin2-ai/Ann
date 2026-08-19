@@ -21,6 +21,17 @@ This project intends to follow the principles of [Keep a Changelog](https://keep
 
 - Separate validation from startup so Core performs one consistent lifecycle sequence.
 
+## [Ann Security Monitor 0.0.14] - TBD
+
+### Added
+
+- Controlled validation, startup, health-check, stopping, and recovery behaviour.
+- A module-local startup verification and failure-recovery procedure.
+
+### Changed
+
+- Keep packet-capture runtime failures isolated so local login monitoring remains available.
+
 ## [Ann Core 0.0.15] - TBD
 
 ### Added

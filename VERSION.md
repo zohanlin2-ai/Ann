@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | Ann Core | 0.0.16 | Generic module start, stop, and restart lifecycle operations |
 | Ann Updater | 0.0.15 | Lifecycle-compatible validation and start separation |
-| Ann Security Monitor | 0.0.13 | Catalog-managed module with an independent version sequence |
+| Ann Security Monitor | 0.0.14 | Controlled lifecycle and isolated packet-capture failures |
 | Python | >=3.10 | Development runtime |
 | PySide6 | 6.8.0.2 | Desktop UI framework |
 | Module Catalog Schema | 1 | GitHub catalog format |
@@ -24,6 +24,8 @@ Only the latest modification log for each current module is retained here. See `
 
 - Separate validation from startup so Ann Core can consistently run `validate()` before `start()`.
 
-### Ann Security Monitor — 0.0.13
+### Ann Security Monitor — 0.0.14
 
-- Establish the independent-module-version migration baseline; no separate Security Monitor feature change was made in this release.
+- Migrate to the controlled module lifecycle with validation, health checks,
+  idempotent stopping, and safe retry or restart recovery.
+- Keep runtime packet-capture failures isolated from local login monitoring.

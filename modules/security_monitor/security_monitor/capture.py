@@ -21,7 +21,10 @@ class PacketCapture:
         try:
             from scapy.all import AsyncSniffer, IP, TCP, UDP  # type: ignore[import-not-found]
         except ImportError as error:
-            raise RuntimeError("Npcap/Scapy is unavailable. Install the optional packet-capture dependency first.") from error
+            raise RuntimeError(
+                "Scapy is unavailable. Install the root requirements file; on Windows, "
+                "network capture also requires Npcap and an authorised capture environment."
+            ) from error
 
         def inspect(packet) -> None:
             if not packet.haslayer(IP):
@@ -35,8 +38,16 @@ class PacketCapture:
                 udp = packet[UDP]
                 self.observe(ip.src, ip.dst, "udp", int(udp.dport), False, False)
 
-        self.sniffer = AsyncSniffer(iface=interface, prn=inspect, store=False)
-        self.sniffer.start()
+        try:
+            self.sniffer = AsyncSniffer(iface=interface, prn=inspect, store=False)
+            self.sniffer.start()
+        except Exception as error:
+            self.sniffer = None
+            self.last_error = str(error)
+            raise RuntimeError(
+                "Network capture could not start. Check Npcap, the selected interface, "
+                "and capture permission."
+            ) from error
         self.timer = threading.Timer(seconds, self.stop)
         self.timer.daemon = True
         self.timer.start()

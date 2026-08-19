@@ -120,7 +120,7 @@ When startup fails, the module must record a clear error and stack trace in `log
 
 Ann Core is the exception: a Core startup failure prevents Ann from starting. If the failure occurs before Core reports `Ready` after an update, the launcher recovery process handles rollback. A required system module such as Ann Updater should leave Ann running but mark only its own functionality unavailable. An optional module may degrade a sub-feature instead of failing completely when that is safe.
 
-New modules must implement this lifecycle contract. Existing legacy modules remain loadable through Ann Core's compatibility adapter while they are migrated. Ann Security Monitor is currently such a legacy module; it remains supported but is not the implementation example for new modules.
+New modules must implement this lifecycle contract. Existing legacy modules remain loadable through Ann Core's compatibility adapter while they are migrated. Ann Security Monitor implements this contract directly and is the maintained optional-module example.
 
 Each module README must include a **Startup and Failure Handling** section covering its preconditions, successful startup behaviour, health checks, failure behaviour, recovery or retry procedure, and log location. Each module must test normal startup, an injected or simulated startup failure, missing dependencies or invalid configuration, failure isolation from Ann and other modules, and successful recovery after retry or restart.
 
@@ -149,7 +149,7 @@ The following table provides a short catalog of every module currently included 
 | --- | --- | --- | --- | --- |
 | `ann.core` | Ann Core | Required system module | Enabled | Desktop UI, command routing, registry, module runtime, and update recovery. |
 | `ann.updater` | Ann Updater | Required system module | Enabled | Checks, verifies, and applies full-project Ann updates. |
-| `ann.security-monitor` | Ann Security Monitor | Optional legacy module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center; lifecycle migration is planned. |
+| `ann.security-monitor` | Ann Security Monitor | Optional module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center and controlled lifecycle support. |
 
 ## Version and Release Management
 
@@ -235,7 +235,7 @@ When a module is added or its code changes, first read and follow the **Module D
 5. If the module is part of an Ann release, add its ID, display name, version, and manifest path to `catalog.json` so Ann Updater can verify it. Add archive URLs, compatibility requirements, and permissions when the module is independently distributed in the future.
 6. Commit and push the module code, manifest, README when it is newly included, catalog entry when applicable, and version documentation together.
 
-For example, the current Ann Security Monitor module is maintained in `modules/security_monitor/` with its implementation, `manifest.json`, detailed README, tests, and its current module version (`0.0.13`).
+For example, the current Ann Security Monitor module is maintained in `modules/security_monitor/` with its implementation, `manifest.json`, detailed README, tests, and its current module version (`0.0.14`).
 
 ## Security Principles
 
