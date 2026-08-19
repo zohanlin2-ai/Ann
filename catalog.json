@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "ann_core": {
-    "version": "0.0.14",
+    "version": "0.0.15",
     "archive_url": "https://github.com/zohanlin2-ai/Ann/archive/refs/heads/master.zip"
   },
   "modules": [

@@ -4,7 +4,7 @@
 
 | Component | Version | Notes |
 | --- | --- | --- |
-| Ann Core | 0.0.14 | Ready handshake and startup-only update rollback |
+| Ann Core | 0.0.15 | Safe staged manifest paths and Ready-aware recovery |
 | Ann Updater | 0.0.14 | Startup validation with unavailable-state isolation |
 | Ann Security Monitor | 0.0.13 | Catalog-managed module with an independent version sequence |
 | Python | >=3.10 | Development runtime |
@@ -15,10 +15,10 @@
 
 Only the latest modification log for each current module is retained here. See `CHANGELOG.md` for the complete chronological project history and each module's README for its detailed module history.
 
-### Ann Core — 0.0.14
+### Ann Core — 0.0.15
 
-- Add a launcher/Core Ready handshake so rollback applies only to startup failures.
-- Add shared module runtime states and generic module status and retry handling.
+- Reject catalog manifest paths that resolve outside the staged project root.
+- Clarify and enforce rollback only for failures before Core reports `Ready`.
 
 ### Ann Updater — 0.0.14
 

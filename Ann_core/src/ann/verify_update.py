@@ -28,7 +28,12 @@ def verify_update(project_root: Path, core_root: Path) -> bool:
     if updater_manifest.get("id") != "ann.updater":
         return False
     for module in catalog.get("modules", []):
-        manifest_path = project_root / module["manifest_path"]
+        relative_manifest_path = Path(module["manifest_path"])
+        if relative_manifest_path.is_absolute():
+            return False
+        manifest_path = (project_root / relative_manifest_path).resolve()
+        if not manifest_path.is_relative_to(project_root.resolve()):
+            return False
         if not manifest_path.is_file():
             return False
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))

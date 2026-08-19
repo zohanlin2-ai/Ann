@@ -288,7 +288,7 @@ For an Ann update, the Updater downloads the complete GitHub project into `backu
 
 The complete staged verification, failure handling, rollback, diagnostics, and test checklist are documented in [Update Verification and Recovery](Ann_core/modules/updater/UPDATE_VERIFICATION.md).
 
-If the updated Ann Core then exits with a non-zero status, the launcher automatically restores the managed project files from `rollback_ann/` and starts the previous version once. The recovery state prevents repeated automatic rollback attempts. If the restored version also fails, Ann stops and the update logs retain the diagnostic details.
+If the updated Ann Core exits with a non-zero status before it reports `Ready`, the launcher automatically restores the managed project files from `rollback_ann/` and starts the previous version once. A non-zero exit after `Ready` is recorded as a runtime failure without rollback. The recovery state prevents repeated automatic rollback attempts. If the restored Core also fails before `Ready`, Ann stops and the update logs retain the diagnostic details.
 
 ### Launcher Migration
 

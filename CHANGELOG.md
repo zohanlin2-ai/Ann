@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 This project intends to follow the principles of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
+## [0.0.15] - TBD
+
+### Added
+
+- Reject staged catalog manifest paths that resolve outside the project root.
+
+### Changed
+
+- Roll back only when an updated Core fails before reporting `Ready`; record later non-zero exits as runtime failures.
+
+## [Unreleased]
+
+### Documentation
+
+- Add the complete staged-update verification, recovery, diagnostics, and test procedure.
+
 ## [0.0.13] - TBD
 
 ### Changed
