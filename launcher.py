@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import time
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
@@ -50,6 +51,7 @@ class CoreRun:
     returncode: int
     ready: bool
     process_id: int
+    session_id: str
 
 
 def _write_json_atomically(path: Path, value: dict) -> None:
@@ -76,6 +78,8 @@ def run_core() -> CoreRun:
     environment["ANN_PROJECT_ROOT"] = str(ROOT)
     environment["ANN_CORE_DIR"] = str(ACTIVE_CORE)
     environment["ANN_CORE_READY_FILE"] = str(READY_STATE)
+    session_id = uuid.uuid4().hex
+    environment["ANN_LAUNCH_SESSION_ID"] = session_id
     command = [sys.executable, str(ACTIVE_CORE / "main.py")]
     process = subprocess.Popen(command, cwd=ROOT, env=environment)
     LOGGER.info("Starting Ann Core; launcher_pid=%s core_pid=%s command=%s", os.getpid(), process.pid, command)
@@ -84,39 +88,16 @@ def run_core() -> CoreRun:
         returncode = process.poll()
         if returncode is not None:
             LOGGER.error("Ann Core exited before Ready; returncode=%s", returncode)
-            return CoreRun(returncode, False, process.pid)
+            return CoreRun(returncode, False, process.pid, session_id)
         if time.monotonic() >= deadline:
             LOGGER.error("Ann Core did not report Ready within 30 seconds")
             process.terminate()
-            return CoreRun(process.wait(), False, process.pid)
+            return CoreRun(process.wait(), False, process.pid, session_id)
         time.sleep(0.1)
     LOGGER.info("Ann Core reported Ready")
     returncode = process.wait()
     LOGGER.info("Active Ann Core exited after Ready; returncode=%s", returncode)
-    return CoreRun(returncode, True, process.pid)
-
-
-def _wait_for_process_exit(process_id: int) -> None:
-    """Wait for the running Ann process to release its project files."""
-    deadline = time.monotonic() + 60
-    checks = 0
-    LOGGER.info(
-        "[update-diagnostic] Helper started; helper_pid=%s target_core_pid=%s timeout_seconds=60",
-        os.getpid(), process_id,
-    )
-    while True:
-        try:
-            os.kill(process_id, 0)
-        except OSError:
-            LOGGER.info("[update-diagnostic] Target Core process %s exited after %s checks", process_id, checks)
-            return
-        checks += 1
-        if checks == 1 or checks % 25 == 0:
-            LOGGER.info("[update-diagnostic] Waiting for target Core process %s; checks=%s", process_id, checks)
-        if time.monotonic() >= deadline:
-            raise TimeoutError(f"Timed out waiting 60 seconds for Core process {process_id} to exit.")
-        time.sleep(0.2)
-
+    return CoreRun(returncode, True, process.pid, session_id)
 
 def apply_verified_update(request: dict) -> dict:
     """Replace managed project files while preserving local data and this bootstrap."""
@@ -241,7 +222,7 @@ def clear_update_state() -> None:
 def _read_update_request() -> dict | None:
     if not UPDATE_REQUEST.is_file(): return None
     request = _read_json(UPDATE_REQUEST)
-    if not isinstance(request.get("transaction_id"), str) or request.get("staging_name") != STAGED_CORE.name or not isinstance(request.get("core_pid"), int):
+    if not isinstance(request.get("transaction_id"), str) or request.get("staging_name") != STAGED_CORE.name or not isinstance(request.get("launch_session_id"), str):
         raise RuntimeError("The update request is invalid.")
     return request
 
@@ -309,8 +290,8 @@ def main() -> int:
         request = _read_update_request()
         if request is None:
             return outcome.returncode
-        if request["core_pid"] != outcome.process_id:
-            LOGGER.error("Update request Core pid mismatch; request_pid=%s observed_pid=%s", request["core_pid"], outcome.process_id)
+        if request["launch_session_id"] != outcome.session_id:
+            LOGGER.error("Update request session mismatch; request_session=%s observed_session=%s", request["launch_session_id"], outcome.session_id)
             return outcome.returncode
         if not outcome.ready or outcome.returncode != 0:
             LOGGER.error("Update request was not applied because Core did not exit normally; ready=%s returncode=%s", outcome.ready, outcome.returncode)

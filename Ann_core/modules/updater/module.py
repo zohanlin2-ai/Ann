@@ -145,11 +145,16 @@ class Updater:
                 details = verification.stderr.strip() or verification.stdout.strip() or "unknown validation failure"
                 return CommandResult(f"Ann update validation failed; backup_ann was preserved for inspection: {details}")
             request_path = self.project_root / ".ann-update-request.json"
-            request = {"transaction_id": uuid.uuid4().hex, "core_pid": os.getpid(), "staging_name": "backup_ann"}
+            request = {
+                "transaction_id": uuid.uuid4().hex,
+                "core_pid": os.getpid(),
+                "launch_session_id": os.environ.get("ANN_LAUNCH_SESSION_ID", ""),
+                "staging_name": "backup_ann",
+            }
             temporary_request = request_path.with_suffix(".json.tmp")
             temporary_request.write_text(json.dumps(request, indent=2) + "\n", encoding="utf-8")
             temporary_request.replace(request_path)
-            self.logger.info("Verified update requested; transaction_id=%s core_pid=%s", request["transaction_id"], request["core_pid"])
+            self.logger.info("Verified update requested; transaction_id=%s core_pid=%s launch_session_id=%s", request["transaction_id"], request["core_pid"], request["launch_session_id"])
             return CommandResult("Ann update was downloaded and verified. Ann will restart to apply it.", restart_for_update=True)
         except Exception:
             self.logger.exception("Update Ann failed")

@@ -14,6 +14,10 @@ Ann Core writes its module log to `logs/modules/ann.core.log`. Update diagnostic
 
 ## Release History
 
+### 0.0.18
+
+- Bind each update request to the parent Launcher session instead of a Windows redirector-sensitive process ID.
+
 ### 0.0.17
 
 - Apply verified updates from the parent Launcher and hand off to a new Launcher only when it changed.

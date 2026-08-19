@@ -37,6 +37,10 @@ Ann Core calls `validate()` before `start()`. Validation checks that `ann_config
 
 ## Release History
 
+### 0.0.17
+
+- Include the Launcher session ID in verified update requests so the parent Launcher can safely identify its own Core session.
+
 ### 0.0.15
 
 - Separate validation from startup so the common Ann Core lifecycle is executed exactly once.

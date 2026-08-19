@@ -4,8 +4,8 @@
 
 | Component | Version | Notes |
 | --- | --- | --- |
-| Ann Core | 0.0.17 | Parent-launcher update handoff and complete rollback transaction |
-| Ann Updater | 0.0.16 | Verified update requests without a child helper process |
+| Ann Core | 0.0.18 | Session-bound parent-launcher update handoff |
+| Ann Updater | 0.0.17 | Session-bound verified update requests |
 | Ann Security Monitor | 0.0.14 | Controlled lifecycle and isolated packet-capture failures |
 | Python | >=3.10 | Development runtime |
 | PySide6 | 6.8.0.2 | Desktop UI framework |
@@ -15,14 +15,13 @@
 
 Only the latest modification log for each current module is retained here. See `CHANGELOG.md` for the complete chronological project history and each module's README for its detailed module history.
 
-### Ann Core — 0.0.17
+### Ann Core — 0.0.18
 
-- Apply updates from the parent Launcher, re-exec an updated Launcher, and retain staging until Core reports Ready.
-- Restore the full managed project once when updated Core fails before Ready.
+- Use a Launcher-provided session ID to associate the verified update request with the correct Core process on Windows.
 
-### Ann Updater — 0.0.16
+### Ann Updater — 0.0.17
 
-- Write an atomic verified-update request for the parent Launcher instead of spawning a waiting helper process.
+- Record the parent Launcher session ID in the verified update request instead of comparing redirector-sensitive process IDs.
 
 ### Ann Security Monitor — 0.0.14
 

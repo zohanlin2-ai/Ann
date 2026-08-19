@@ -4,20 +4,20 @@ All notable changes to this project will be documented in this file.
 
 This project intends to follow the principles of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
-## [Ann Core 0.0.17] - TBD
+## [Ann Core 0.0.18] - TBD
 
 ### Added
 
-- Parent-Launcher update application, Launcher handoff, and one-time complete rollback.
+- Use a session-bound parent-Launcher update request so Windows Python redirectors cannot cause a false PID mismatch.
 
 ### Changed
 
 
-## [Ann Updater 0.0.16] - TBD
+## [Ann Updater 0.0.17] - TBD
 
 ### Changed
 
-- Replace the child helper process with an atomic verified-update request for the parent Launcher.
+- Include the Launcher session ID in the verified-update request.
 
 ## [Ann Core 0.0.16] - TBD
 
