@@ -77,6 +77,24 @@ Every module must:
 
 Before release, test the module enabled and disabled, check missing-dependency handling, verify its permissions, and verify its catalog/update behaviour when it is catalog-managed.
 
+### Module Startup and Failure Contract
+
+Every module must implement a clear lifecycle:
+
+```text
+Disabled → Starting → Ready
+                   ↘ Degraded
+                   ↘ Failed
+```
+
+Before reporting `Ready`, a module must validate its configuration, required files, permissions, and dependencies; start its runtime work; register its commands or UI; and write a successful startup record to its module log. A module may report `Degraded` when an optional sub-feature is unavailable but its remaining features can continue safely.
+
+When startup fails, the module must record a clear error and stack trace in `logs/modules/<module-id>.log`, report a user-readable reason, stop only its own runtime work, and provide a safe retry or restart path. It must not crash Ann Core or disable unrelated modules. A failed optional module remains enabled in the user's saved Module List preference, but is unavailable for the current session until it is retried or Ann restarts.
+
+Ann Core is the exception: a Core startup failure prevents Ann from starting, and an update-related Core failure is handled by the launcher rollback process. A required system module such as Ann Updater should leave Ann running but mark only its own functionality unavailable. An optional module may degrade a sub-feature instead of failing completely when that is safe.
+
+Each module README must include a **Startup and Failure Handling** section covering its preconditions, successful startup behaviour, health checks, failure behaviour, recovery or retry procedure, and log location. Each module must test normal startup, an injected or simulated startup failure, missing dependencies or invalid configuration, failure isolation from Ann and other modules, and successful recovery after retry or restart.
+
 ### Current Modules
 
 The following table provides a short catalog of every module currently included with Ann. Ann Core and Ann Updater are required system modules; Ann Security Monitor is currently the only optional module. Current module versions and latest modification logs are recorded only in [VERSION.md](VERSION.md).
@@ -239,6 +257,8 @@ Modules will declare compatibility with Ann releases rather than relying on the 
 The required **Ann Updater** module uses the configured GitHub catalog to check for and update the complete Ann project. It is always enabled. It is delivered with a full Ann update, but its version changes independently from Ann Core. Downloading optional modules is not supported yet.
 
 For an Ann update, the Updater downloads the complete GitHub project into `backup_ann/` and runs a headless validation of the staged project. If validation succeeds, Ann closes and `launcher.py` automatically applies the update and restarts Ann. The updater preserves `.venv`, `.git`, and local module state; it also updates `launcher.py` as part of the managed project. Replaced managed project files are saved in `rollback_ann/`.
+
+The complete staged verification, failure handling, rollback, diagnostics, and test checklist are documented in [Update Verification and Recovery](Ann_core/modules/updater/UPDATE_VERIFICATION.md).
 
 If the updated Ann Core then exits with a non-zero status, the launcher automatically restores the managed project files from `rollback_ann/` and starts the previous version once. The recovery state prevents repeated automatic rollback attempts. If the restored version also fails, Ann stops and the update logs retain the diagnostic details.
 
