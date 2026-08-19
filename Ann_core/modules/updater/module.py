@@ -14,6 +14,7 @@ import zipfile
 from pathlib import Path
 
 from ann.debug_log import get_module_logger
+from ann.module_lifecycle import ModuleResult
 
 
 class Updater:
@@ -23,6 +24,29 @@ class Updater:
         self.registry = registry
         self.config_path = project_root / "ann_config.json"
         self.logger = get_module_logger(project_root, "ann.updater", mirror_update_log=True)
+
+    def validate(self, context=None) -> ModuleResult:
+        try:
+            config = json.loads(self.config_path.read_text(encoding="utf-8"))
+            if not config.get("catalog_url"):
+                raise ValueError("ann_config.json does not define catalog_url")
+        except Exception as error:
+            self.logger.exception("Ann Updater validation failed")
+            return ModuleResult.failed("Ann Updater is unavailable.", str(error))
+        return ModuleResult.ready("Ann Updater is ready.")
+
+    def start(self, context=None) -> ModuleResult:
+        result = self.validate(context)
+        if result.state.value == "Ready":
+            self.logger.info("Ann Updater started successfully")
+        return result
+
+    def health_check(self, context=None) -> ModuleResult:
+        return self.validate(context)
+
+    def stop(self, context=None) -> ModuleResult:
+        self.logger.info("Ann Updater stopped")
+        return ModuleResult.ready("Ann Updater stopped.")
 
     def _catalog(self) -> dict:
         config = json.loads(self.config_path.read_text(encoding="utf-8"))

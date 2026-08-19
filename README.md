@@ -87,6 +87,17 @@ Disabled → Starting → Ready
                    ↘ Failed
 ```
 
+New modules must expose the following lifecycle methods, either directly on the created module object or through Ann's supported module adapter:
+
+```text
+validate(context)     → ModuleResult
+start(context)        → ModuleResult
+health_check(context) → ModuleResult
+stop(context)         → ModuleResult
+```
+
+`ModuleResult` must report a `Ready`, `Degraded`, or `Failed` state, a user-readable message, technical details for logs, and whether retry is safe. Ann Core's Module Runtime owns the shared response: it stores each module's runtime state, exposes that state to the user, skips commands and UI for failed modules, and provides the generic `modules retry <module-id>` operation. Launcher only waits for Ann Core readiness; it never manages individual modules.
+
 Before reporting `Ready`, a module must validate its configuration, required files, permissions, and dependencies; start its runtime work; register its commands or UI; and write a successful startup record to its module log. A module may report `Degraded` when an optional sub-feature is unavailable but its remaining features can continue safely.
 
 When startup fails, the module must record a clear error and stack trace in `logs/modules/<module-id>.log`, report a user-readable reason, stop only its own runtime work, and provide a safe retry or restart path. It must not crash Ann Core or disable unrelated modules. A failed optional module remains enabled in the user's saved Module List preference, but is unavailable for the current session until it is retried or Ann restarts.
@@ -295,6 +306,8 @@ Available chat commands include:
 
 ```text
 modules list
+modules status
+modules retry <module-id>
 modules enable <module-id>
 modules disable <module-id>
 update check

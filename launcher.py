@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 import time
+from dataclasses import dataclass
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
@@ -19,6 +20,7 @@ STAGED_CORE = ROOT / "backup_ann"
 ROLLBACK_CORE = ROOT / "rollback_ann"
 ACTIVE_CORE = ROOT / "Ann_core"
 UPDATE_STATE = ROOT / ".ann-update-state.json"
+READY_STATE = ROOT / ".ann-core-ready.json"
 PRESERVED_NAMES = {".git", ".venv", "backup_ann", "rollback_ann", UPDATE_STATE.name}
 PRESERVED_MODULE_NAMES = {"registry.json", "downloaded"}
 
@@ -40,15 +42,37 @@ def _configure_logger() -> logging.Logger:
 LOGGER = _configure_logger()
 
 
-def run_core() -> int:
+@dataclass(frozen=True)
+class CoreRun:
+    returncode: int
+    ready: bool
+
+
+def run_core() -> CoreRun:
+    if READY_STATE.exists():
+        READY_STATE.unlink()
     environment = os.environ.copy()
     environment["ANN_PROJECT_ROOT"] = str(ROOT)
     environment["ANN_CORE_DIR"] = str(ACTIVE_CORE)
+    environment["ANN_CORE_READY_FILE"] = str(READY_STATE)
     command = [sys.executable, str(ACTIVE_CORE / "main.py")]
     LOGGER.info("Starting active Ann Core: %s", command)
-    returncode = subprocess.call(command, cwd=ROOT, env=environment)
-    LOGGER.info("Active Ann Core exited with returncode=%s", returncode)
-    return returncode
+    process = subprocess.Popen(command, cwd=ROOT, env=environment)
+    deadline = time.monotonic() + 30
+    while not READY_STATE.exists():
+        returncode = process.poll()
+        if returncode is not None:
+            LOGGER.error("Ann Core exited before Ready; returncode=%s", returncode)
+            return CoreRun(returncode, False)
+        if time.monotonic() >= deadline:
+            LOGGER.error("Ann Core did not report Ready within 30 seconds")
+            process.terminate()
+            return CoreRun(process.wait(), False)
+        time.sleep(0.1)
+    LOGGER.info("Ann Core reported Ready")
+    returncode = process.wait()
+    LOGGER.info("Active Ann Core exited after Ready; returncode=%s", returncode)
+    return CoreRun(returncode, True)
 
 
 def _wait_for_process_exit(process_id: int) -> None:
@@ -188,19 +212,21 @@ def main() -> int:
             if arguments.wait_for:
                 _wait_for_process_exit(arguments.wait_for)
             apply_verified_update()
-            returncode = run_core()
-            if returncode == 0:
+            outcome = run_core()
+            if outcome.ready:
                 clear_update_state()
-                return 0
-            LOGGER.error("Updated Ann Core failed to start; returncode=%s", returncode)
+                if outcome.returncode != 0:
+                    LOGGER.error("Updated Ann Core exited after Ready; returncode=%s", outcome.returncode)
+                return outcome.returncode
+            LOGGER.error("Updated Ann Core failed before Ready; returncode=%s", outcome.returncode)
             restore_rollback_update()
-            restored_returncode = run_core()
-            if restored_returncode == 0:
-                LOGGER.info("Rollback Ann Core started and exited successfully")
+            restored = run_core()
+            if restored.ready:
+                LOGGER.info("Rollback Ann Core reported Ready")
                 clear_update_state()
             else:
-                LOGGER.error("Rollback Ann Core also failed; returncode=%s", restored_returncode)
-            return restored_returncode
+                LOGGER.error("Rollback Ann Core also failed before Ready; returncode=%s", restored.returncode)
+            return restored.returncode
         except Exception:
             LOGGER.exception("Failed to apply verified Ann project update")
             print("Ann update could not be applied. See logs/ann-update.log for details.")
@@ -208,7 +234,7 @@ def main() -> int:
     if not ACTIVE_CORE.is_dir():
         print("Ann Core is missing. Restore Ann_core or download an update.")
         return 1
-    return run_core()
+    return run_core().returncode
 
 
 if __name__ == "__main__":

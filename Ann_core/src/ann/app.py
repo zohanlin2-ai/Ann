@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import sys
+import json
 from pathlib import Path
 
 from PySide6.QtCore import QTimer
@@ -56,6 +57,10 @@ def main() -> int:
     bubble.move_to_bottom_right()
     bubble.show()
     core_logger.info("Ann Core UI started successfully")
+    ready_file = os.environ.get("ANN_CORE_READY_FILE")
+    if ready_file:
+        Path(ready_file).write_text(json.dumps({"status": "Ready"}) + "\n", encoding="utf-8")
+        core_logger.info("Ann Core reported Ready to launcher")
     marker = os.environ.get("ANN_TRIAL_MARKER")
     if marker:
         Path(marker).touch()
