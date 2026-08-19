@@ -79,7 +79,7 @@ Before release, test the module enabled and disabled, check missing-dependency h
 
 ### Current Modules
 
-The following table provides a short catalog of every module currently included with Ann. Ann Core and Ann Updater are required system modules; Ann Security Monitor is currently the only optional module. Current module versions and latest modification logs are recorded only in `VERSION.md`.
+The following table provides a short catalog of every module currently included with Ann. Ann Core and Ann Updater are required system modules; Ann Security Monitor is currently the only optional module. Current module versions and latest modification logs are recorded only in [VERSION.md](VERSION.md).
 
 | Module ID | Module | Type | Default state | Summary |
 | --- | --- | --- | --- | --- |
