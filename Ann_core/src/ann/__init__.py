@@ -1,3 +1,3 @@
 """Ann Core package."""
 
-__version__ = "0.0.18"
+__version__ = "0.0.19"

@@ -64,7 +64,13 @@ class Updater:
         expected = {"ann.core": catalog["ann_core"]["version"]}
         expected.update({module["id"]: module["version"] for module in catalog.get("modules", [])})
         installed = {module["id"]: module["version"] for module in self.registry.list_modules()}
-        return [(module_id, installed.get(module_id, "not installed"), version) for module_id, version in expected.items() if installed.get(module_id) != version]
+        differences = [(module_id, installed.get(module_id, "not installed"), version) for module_id, version in expected.items() if installed.get(module_id) != version]
+        expected_launcher_hash = catalog["ann_core"].get("launcher_sha256")
+        if expected_launcher_hash:
+            local_launcher_hash = hashlib.sha256((self.project_root / "launcher.py").read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+            if local_launcher_hash != expected_launcher_hash:
+                differences.append(("ann.launcher", local_launcher_hash, expected_launcher_hash))
+        return differences
 
     @staticmethod
     def _safe_extract(archive: Path, destination: Path) -> None:
@@ -103,6 +109,10 @@ class Updater:
             else f"{name}: {version} (current)"
             for module_id, name, version in expected
         ]
+        expected_launcher_hash = catalog["ann_core"].get("launcher_sha256")
+        if expected_launcher_hash:
+            local_launcher_hash = hashlib.sha256((self.project_root / "launcher.py").read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+            messages.append("Launcher: modified (update required)" if local_launcher_hash != expected_launcher_hash else "Launcher: current")
         return "\n".join(messages)
 
     def stage_project_update(self):

@@ -1,14 +1,15 @@
 {
   "schema_version": 1,
   "ann_core": {
-    "version": "0.0.18",
+    "version": "0.0.19",
+    "launcher_sha256": "80bc00e8f4f7c0a9d4bca58b137e93a93fc84577ef6ba31aeae9d9c2b0d51b42",
     "archive_url": "https://github.com/zohanlin2-ai/Ann/archive/refs/heads/master.zip"
   },
   "modules": [
     {
       "id": "ann.updater",
       "name": "Ann Updater",
-      "version": "0.0.17",
+      "version": "0.0.18",
       "manifest_path": "Ann_core/modules/updater/manifest.json",
       "bundled_with": "ann.core"
     },
