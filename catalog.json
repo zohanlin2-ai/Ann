@@ -1,21 +1,21 @@
 {
   "schema_version": 1,
   "ann_core": {
-    "version": "0.0.12",
+    "version": "0.0.13",
     "archive_url": "https://github.com/zohanlin2-ai/Ann/archive/refs/heads/master.zip"
   },
   "modules": [
     {
       "id": "ann.updater",
       "name": "Ann Updater",
-      "version": "0.0.12",
+      "version": "0.0.13",
       "manifest_path": "Ann_core/modules/updater/manifest.json",
       "bundled_with": "ann.core"
     },
     {
       "id": "ann.security-monitor",
       "name": "Ann Security Monitor",
-      "version": "0.0.12",
+      "version": "0.0.13",
       "manifest_path": "modules/security_monitor/manifest.json"
     }
   ]

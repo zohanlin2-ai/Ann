@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project intends to follow the principles of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
+## [0.0.13] - TBD
+
+### Changed
+
+- Include `launcher.py` in full-project updates and rollback transactions so future launcher recovery logic is delivered with Ann updates.
+
 ## [0.0.12] - TBD
 
 ### Added

@@ -65,9 +65,9 @@ separate version sequence.
 
 ## Release History
 
-### 0.0.12
+### 0.0.13
 
-- Align the module with the catalog-managed Ann `0.0.12` release.
+- Align the module with the catalog-managed Ann `0.0.13` release.
 
 ### 0.0.11
 

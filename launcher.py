@@ -19,7 +19,7 @@ STAGED_CORE = ROOT / "backup_ann"
 ROLLBACK_CORE = ROOT / "rollback_ann"
 ACTIVE_CORE = ROOT / "Ann_core"
 UPDATE_STATE = ROOT / ".ann-update-state.json"
-PRESERVED_NAMES = {".git", ".venv", "backup_ann", "rollback_ann", "launcher.py", UPDATE_STATE.name}
+PRESERVED_NAMES = {".git", ".venv", "backup_ann", "rollback_ann", UPDATE_STATE.name}
 PRESERVED_MODULE_NAMES = {"registry.json", "downloaded"}
 
 

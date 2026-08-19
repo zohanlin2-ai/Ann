@@ -59,9 +59,9 @@ The following table lists every module currently included with Ann. Ann Core and
 
 | Module ID | Module | Version | Type | Default state | Summary |
 | --- | --- | --- | --- | --- | --- |
-| `ann.core` | Ann Core | 0.0.12 | Required system module | Enabled | Desktop UI, command routing, registry, module runtime, and update recovery. |
-| `ann.updater` | Ann Updater | 0.0.12 | Required system module | Enabled | Checks, verifies, and applies full-project Ann updates. |
-| `ann.security-monitor` | Ann Security Monitor | 0.0.12 | Optional module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center. |
+| `ann.core` | Ann Core | 0.0.13 | Required system module | Enabled | Desktop UI, command routing, registry, module runtime, and update recovery. |
+| `ann.updater` | Ann Updater | 0.0.13 | Required system module | Enabled | Checks, verifies, and applies full-project Ann updates. |
+| `ann.security-monitor` | Ann Security Monitor | 0.0.13 | Optional module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center. |
 
 ## Version and Release Management
 
@@ -146,7 +146,7 @@ When a module is added or its code changes, first read and follow this **Version
 5. If the module is part of an Ann release, add its ID, display name, version, and manifest path to `catalog.json` so Ann Updater can verify it. Add archive URLs, compatibility requirements, and permissions when the module is independently distributed in the future.
 6. Commit and push the module code, manifest, README, catalog entry when applicable, and version documentation together.
 
-For example, the current Ann Security Monitor module is maintained in `modules/security_monitor/` with its implementation, `manifest.json`, detailed README, tests, and the current Ann release version (`0.0.12`).
+For example, the current Ann Security Monitor module is maintained in `modules/security_monitor/` with its implementation, `manifest.json`, detailed README, tests, and the current Ann release version (`0.0.13`).
 
 ## Security Principles
 
@@ -213,7 +213,7 @@ Modules will declare compatibility with Ann releases rather than relying on the 
 
 The required **Ann Updater** module uses the configured GitHub catalog to check for and update Ann Core. It is always enabled and is updated together with Ann Core. Downloading optional modules is not supported yet.
 
-For an Ann update, the Updater downloads the complete GitHub project into `backup_ann/` and runs a headless validation of the staged project. If validation succeeds, Ann closes and the stable `launcher.py` automatically applies the update and restarts Ann. The updater preserves `.venv`, `.git`, local module state, and `launcher.py`; replaced managed project files are saved in `rollback_ann/`.
+For an Ann update, the Updater downloads the complete GitHub project into `backup_ann/` and runs a headless validation of the staged project. If validation succeeds, Ann closes and `launcher.py` automatically applies the update and restarts Ann. The updater preserves `.venv`, `.git`, and local module state; it also updates `launcher.py` as part of the managed project. Replaced managed project files are saved in `rollback_ann/`.
 
 If the updated Ann Core then exits with a non-zero status, the launcher automatically restores the managed project files from `rollback_ann/` and starts the previous version once. The recovery state prevents repeated automatic rollback attempts. If the restored version also fails, Ann stops and the update logs retain the diagnostic details.
 
