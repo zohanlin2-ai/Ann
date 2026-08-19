@@ -1,7 +1,7 @@
 {
   "id": "ann.security-monitor",
   "name": "Ann Security Monitor",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "entry_point": "module.py",
   "default_enabled": true,
   "description": "Read-only login and network metadata monitoring with a local Security Center.",

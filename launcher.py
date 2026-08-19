@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import os
 import shutil
@@ -17,7 +18,8 @@ ROOT = Path(__file__).resolve().parent
 STAGED_CORE = ROOT / "backup_ann"
 ROLLBACK_CORE = ROOT / "rollback_ann"
 ACTIVE_CORE = ROOT / "Ann_core"
-PRESERVED_NAMES = {".git", ".venv", "backup_ann", "rollback_ann", "launcher.py"}
+UPDATE_STATE = ROOT / ".ann-update-state.json"
+PRESERVED_NAMES = {".git", ".venv", "backup_ann", "rollback_ann", "launcher.py", UPDATE_STATE.name}
 PRESERVED_MODULE_NAMES = {"registry.json", "downloaded"}
 
 
@@ -70,6 +72,10 @@ def apply_verified_update() -> None:
         shutil.rmtree(ROLLBACK_CORE)
     ROLLBACK_CORE.mkdir()
     managed_names = [item.name for item in STAGED_CORE.iterdir() if item.name not in PRESERVED_NAMES]
+    UPDATE_STATE.write_text(
+        json.dumps({"managed_names": managed_names, "rollback_attempted": False}, indent=2) + "\n",
+        encoding="utf-8",
+    )
     LOGGER.info("Managed project entries to replace: %s", managed_names)
     for name in managed_names:
         current = ROOT / name
@@ -119,6 +125,59 @@ def apply_verified_update() -> None:
     print("The verified Ann project update was applied successfully.")
 
 
+def restore_rollback_update() -> None:
+    """Restore the pre-update managed project after the new Core fails to start."""
+    if not ROLLBACK_CORE.is_dir():
+        raise RuntimeError("No rollback_ann project is available.")
+    if not UPDATE_STATE.is_file():
+        raise RuntimeError("No update state is available for rollback.")
+    state = json.loads(UPDATE_STATE.read_text(encoding="utf-8"))
+    if state.get("rollback_attempted"):
+        raise RuntimeError("Automatic rollback was already attempted for this update.")
+    managed_names = state.get("managed_names", [])
+    if not isinstance(managed_names, list) or not all(isinstance(name, str) for name in managed_names):
+        raise RuntimeError("The update state is invalid.")
+    state["rollback_attempted"] = True
+    UPDATE_STATE.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+    LOGGER.warning("Restoring rollback project after failed updated Core; entries=%s", managed_names)
+    for name in managed_names:
+        current = ROOT / name
+        rollback = ROLLBACK_CORE / name
+        if name == "modules":
+            current.mkdir(exist_ok=True)
+            for item in current.iterdir():
+                if item.name in PRESERVED_MODULE_NAMES:
+                    continue
+                if item.is_dir():
+                    shutil.rmtree(item)
+                else:
+                    item.unlink()
+            if rollback.is_dir():
+                for item in rollback.iterdir():
+                    if item.name in PRESERVED_MODULE_NAMES:
+                        continue
+                    target = current / item.name
+                    if item.is_dir():
+                        shutil.copytree(item, target)
+                    else:
+                        shutil.copy2(item, target)
+            continue
+        if current.is_dir():
+            shutil.rmtree(current)
+        elif current.exists():
+            current.unlink()
+        if rollback.is_dir():
+            shutil.copytree(rollback, current)
+        elif rollback.is_file():
+            shutil.copy2(rollback, current)
+    LOGGER.info("Rollback project restored successfully from %s", ROLLBACK_CORE)
+
+
+def clear_update_state() -> None:
+    if UPDATE_STATE.exists():
+        UPDATE_STATE.unlink()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--apply-update", action="store_true")
@@ -129,7 +188,19 @@ def main() -> int:
             if arguments.wait_for:
                 _wait_for_process_exit(arguments.wait_for)
             apply_verified_update()
-            return run_core()
+            returncode = run_core()
+            if returncode == 0:
+                clear_update_state()
+                return 0
+            LOGGER.error("Updated Ann Core failed to start; returncode=%s", returncode)
+            restore_rollback_update()
+            restored_returncode = run_core()
+            if restored_returncode == 0:
+                LOGGER.info("Rollback Ann Core started and exited successfully")
+                clear_update_state()
+            else:
+                LOGGER.error("Rollback Ann Core also failed; returncode=%s", restored_returncode)
+            return restored_returncode
         except Exception:
             LOGGER.exception("Failed to apply verified Ann project update")
             print("Ann update could not be applied. See logs/ann-update.log for details.")

@@ -4,9 +4,9 @@
 
 | Component | Version | Notes |
 | --- | --- | --- |
-| Ann Core | 0.0.11 | Catalog-managed full-module version checks |
-| Ann Updater | 0.0.11 | Required system module, bundled with Ann Core |
-| Ann Security Monitor | 0.0.11 | Catalog-managed module included with this release |
+| Ann Core | 0.0.12 | Automatic rollback after an updated Core fails to start |
+| Ann Updater | 0.0.12 | Required system module, bundled with Ann Core |
+| Ann Security Monitor | 0.0.12 | Catalog-managed module included with this release |
 | Python | >=3.10 | Development runtime |
 | PySide6 | 6.8.0.2 | Desktop UI framework |
 | Module Catalog Schema | 1 | GitHub catalog format |
@@ -15,16 +15,15 @@
 
 Only the latest modification log for each current module is retained here. See `CHANGELOG.md` for the complete chronological project history and each module's README for its detailed module history.
 
-### Ann Core — 0.0.11
+### Ann Core — 0.0.12
 
-- List every catalog-managed module and its latest version in `catalog.json`.
-- Require a full Ann update whenever any catalog-managed module version differs.
+- Restore the pre-update project automatically when the updated Core exits with an error after installation.
+- Limit automatic recovery to one rollback attempt and preserve local module data.
 
-### Ann Updater — 0.0.11
+### Ann Updater — 0.0.12
 
-- Compare every catalog-managed module version exactly and stage a full Ann update when any version differs.
+- Use the stable launcher recovery path after a verified complete-project update.
 
-### Ann Security Monitor — 0.0.11
+### Ann Security Monitor — 0.0.12
 
-- Align the module with the catalog-managed Ann `0.0.11` release.
-- Add a dedicated module debug log.
+- Align the module with the catalog-managed Ann `0.0.12` release.

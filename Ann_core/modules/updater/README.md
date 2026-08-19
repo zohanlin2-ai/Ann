@@ -12,6 +12,7 @@ It reads the GitHub catalog configured in the project root and stages a complete
 2. The staged project runs `Ann_core/main.py --verify-update` without opening the normal UI.
 3. If validation succeeds, Ann closes and `launcher.py` automatically applies the staged project.
 4. The launcher preserves `.venv`, `.git`, `modules/registry.json`, downloaded modules, and itself; it saves replaced project files in `rollback_ann/`.
+5. If the updated Core exits with an error, the launcher restores `rollback_ann/` once and starts the previous version. If that version also fails, it stops and records the failure.
 
 ## Debug Log
 
@@ -21,3 +22,9 @@ Ann Updater writes its own module log to `logs/modules/ann.updater.log` and mirr
 
 - `update check`
 - `update ann`
+
+## Release History
+
+### 0.0.12
+
+- Add automatic one-time rollback after an updated Core startup failure.

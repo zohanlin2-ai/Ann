@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 This project intends to follow the principles of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
+## [0.0.12] - TBD
+
+### Added
+
+- Automatic one-time rollback when an updated Ann Core exits with an error immediately after a verified update is applied.
+- Update transaction state that records the managed project entries needed for safe rollback.
+
+### Changed
+
+- Preserve local module state and downloaded modules while restoring the pre-update project.
+
 ## [0.0.11] - TBD
 
 ### Added
