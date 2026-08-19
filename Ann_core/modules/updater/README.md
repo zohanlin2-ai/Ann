@@ -14,6 +14,8 @@ It reads the GitHub catalog configured in the project root and stages a complete
 4. The launcher preserves `.venv`, `.git`, `modules/registry.json`, and downloaded modules; it updates itself with the project and saves replaced project files in `rollback_ann/`.
 5. If the updated Core exits with an error before reporting `Ready`, the launcher restores `rollback_ann/` once and starts the previous version. A failure after `Ready` is logged without rollback. If the restored Core also fails before `Ready`, it stops and records the failure.
 
+After verification, Updater writes a local update request and asks Ann to close. It does not launch a second helper process. The parent Launcher that already owns the Core process applies the update after Core exits, and re-executes the new Launcher only when its contents changed.
+
 Installations created before Ann `0.0.13` need a one-time manual project sync to receive the self-updating launcher, because earlier launchers preserved themselves during updates.
 
 ## Debug Log

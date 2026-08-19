@@ -14,6 +14,11 @@ Ann Core writes its module log to `logs/modules/ann.core.log`. Update diagnostic
 
 ## Release History
 
+### 0.0.17
+
+- Apply verified updates from the parent Launcher and hand off to a new Launcher only when it changed.
+- Restore the complete managed project once if updated Core fails before Ready.
+
 ### 0.0.16
 
 - Add shared immediate module start, stop, and restart operations with runtime status reporting.

@@ -304,6 +304,8 @@ The required **Ann Updater** module uses the configured GitHub catalog to check 
 
 For an Ann update, the Updater downloads the complete GitHub project into `backup_ann/` and runs a headless validation of the staged project. If validation succeeds, Ann closes and `launcher.py` automatically applies the update and restarts Ann. The updater preserves `.venv`, `.git`, and local module state; it also updates `launcher.py` as part of the managed project. Replaced managed project files are saved in `rollback_ann/`.
 
+Updater records a verified update request; the parent Launcher that started Ann waits for Core to exit, applies the staged project, then re-executes the updated Launcher only when `launcher.py` changed. If Launcher did not change, it starts the updated Core directly. In both cases Core starts every enabled module through the normal lifecycle. Staging remains until updated Core reports `Ready`; a failure before `Ready` restores the complete managed project once.
+
 The complete staged verification, failure handling, rollback, diagnostics, and test checklist are documented in [Update Verification and Recovery](Ann_core/modules/updater/UPDATE_VERIFICATION.md).
 
 If the updated Ann Core exits with a non-zero status before it reports `Ready`, the launcher automatically restores the managed project files from `rollback_ann/` and starts the previous version once. A non-zero exit after `Ready` is recorded as a runtime failure without rollback. The recovery state prevents repeated automatic rollback attempts. If the restored Core also fails before `Ready`, Ann stops and the update logs retain the diagnostic details.

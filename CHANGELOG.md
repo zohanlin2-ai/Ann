@@ -4,16 +4,22 @@ All notable changes to this project will be documented in this file.
 
 This project intends to follow the principles of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
-## [Ann Core 0.0.16] - TBD
+## [Ann Core 0.0.17] - TBD
 
 ### Added
 
-- Shared Ann Core operations to start, stop, and restart enabled modules at runtime.
-- Runtime `Stopped` state and Module List controls for start, stop, and restart.
+- Parent-Launcher update application, Launcher handoff, and one-time complete rollback.
 
 ### Changed
 
-- Stop supported running modules during normal Ann shutdown while preserving their saved enabled state.
+
+## [Ann Updater 0.0.16] - TBD
+
+### Changed
+
+- Replace the child helper process with an atomic verified-update request for the parent Launcher.
+
+## [Ann Core 0.0.16] - TBD
 
 ## [Ann Updater 0.0.15] - TBD
 

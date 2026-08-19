@@ -8,7 +8,9 @@ backup_ann/
 rollback_ann/
 .ann_trial_ready
 .ann-update-state.json
+.ann-update-request.json
 .ann-core-ready.json
+failed_updates/
 modules/registry.json
 modules/downloaded/
 logs/

@@ -36,33 +36,44 @@ def main() -> int:
     project_root = Path(os.environ.get("ANN_PROJECT_ROOT", Path(__file__).resolve().parents[3]))
     core_root = Path(os.environ.get("ANN_CORE_DIR", Path(__file__).resolve().parents[2]))
     core_logger = get_module_logger(project_root, "ann.core")
-    core_logger.info("Starting Ann Core")
+    core_logger.info("Starting Ann Core; core_pid=%s", os.getpid())
     core = AnnCore(project_root, core_root)
-    app.aboutToQuit.connect(core.stop_all_modules)
+    def request_quit(reason: str) -> None:
+        core_logger.info("Quit requested; core_pid=%s reason=%s", os.getpid(), reason)
+        app.quit()
+
+    def on_about_to_quit() -> None:
+        core_logger.info("QApplication aboutToQuit; core_pid=%s", os.getpid())
+        core.stop_all_modules()
+
+    app.aboutToQuit.connect(on_about_to_quit)
     bubble = Bubble()
     chat = ChatWindow(core)
     bubble.clicked.connect(chat.showNormal)
     chat.status_changed.connect(bubble.set_status)
-    chat.exit_requested.connect(app.quit)
-    chat.restart_requested.connect(app.quit)
+    chat.exit_requested.connect(lambda: request_quit("chat exit command"))
+    chat.restart_requested.connect(lambda: request_quit("chat update restart"))
     def show_update() -> None:
         dialog = UpdateDialog(core)
-        dialog.restart_requested.connect(app.quit)
+        dialog.restart_requested.connect(lambda: request_quit("Update Ann completed"))
         dialog.exec()
 
     bubble.update_requested.connect(show_update)
     bubble.modules_requested.connect(lambda: ModuleListDialog(core).exec())
     bubble.security_requested.connect(lambda: show_security(bubble, core))
     bubble.about_requested.connect(lambda: show_about(bubble))
-    bubble.exit_requested.connect(app.quit)
+    bubble.exit_requested.connect(lambda: request_quit("bubble exit action"))
     bubble.move_to_bottom_right()
     bubble.show()
     core_logger.info("Ann Core UI started successfully")
     ready_file = os.environ.get("ANN_CORE_READY_FILE")
     if ready_file:
-        Path(ready_file).write_text(json.dumps({"status": "Ready"}) + "\n", encoding="utf-8")
+        module_summary = {module_id: result.state.value for module_id, result in core.module_results.items()}
+        Path(ready_file).write_text(json.dumps({"status": "Ready", "module_summary": module_summary}) + "\n", encoding="utf-8")
         core_logger.info("Ann Core reported Ready to launcher")
     marker = os.environ.get("ANN_TRIAL_MARKER")
     if marker:
         Path(marker).touch()
-    return app.exec()
+    exit_code = app.exec()
+    core_logger.info("QApplication event loop returned; core_pid=%s exit_code=%s", os.getpid(), exit_code)
+    return exit_code

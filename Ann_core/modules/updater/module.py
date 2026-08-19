@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.request
+import uuid
 import zipfile
 from pathlib import Path
 
@@ -143,9 +144,12 @@ class Updater:
             if verification.returncode != 0:
                 details = verification.stderr.strip() or verification.stdout.strip() or "unknown validation failure"
                 return CommandResult(f"Ann update validation failed; backup_ann was preserved for inspection: {details}")
-            helper = [sys.executable, str(self.project_root / "launcher.py"), "--apply-update", "--wait-for", str(os.getpid())]
-            self.logger.info("Scheduling update helper: %s", helper)
-            subprocess.Popen(helper, cwd=self.project_root, env=os.environ.copy())
+            request_path = self.project_root / ".ann-update-request.json"
+            request = {"transaction_id": uuid.uuid4().hex, "core_pid": os.getpid(), "staging_name": "backup_ann"}
+            temporary_request = request_path.with_suffix(".json.tmp")
+            temporary_request.write_text(json.dumps(request, indent=2) + "\n", encoding="utf-8")
+            temporary_request.replace(request_path)
+            self.logger.info("Verified update requested; transaction_id=%s core_pid=%s", request["transaction_id"], request["core_pid"])
             return CommandResult("Ann update was downloaded and verified. Ann will restart to apply it.", restart_for_update=True)
         except Exception:
             self.logger.exception("Update Ann failed")

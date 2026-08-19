@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import logging
 import os
@@ -18,10 +19,12 @@ from logging.handlers import RotatingFileHandler
 ROOT = Path(__file__).resolve().parent
 STAGED_CORE = ROOT / "backup_ann"
 ROLLBACK_CORE = ROOT / "rollback_ann"
+FAILED_UPDATES = ROOT / "failed_updates"
 ACTIVE_CORE = ROOT / "Ann_core"
+UPDATE_REQUEST = ROOT / ".ann-update-request.json"
 UPDATE_STATE = ROOT / ".ann-update-state.json"
 READY_STATE = ROOT / ".ann-core-ready.json"
-PRESERVED_NAMES = {".git", ".venv", "backup_ann", "rollback_ann", UPDATE_STATE.name}
+PRESERVED_NAMES = {".git", ".venv", "backup_ann", "rollback_ann", "failed_updates", UPDATE_REQUEST.name, UPDATE_STATE.name}
 PRESERVED_MODULE_NAMES = {"registry.json", "downloaded"}
 
 
@@ -46,6 +49,24 @@ LOGGER = _configure_logger()
 class CoreRun:
     returncode: int
     ready: bool
+    process_id: int
+
+
+def _write_json_atomically(path: Path, value: dict) -> None:
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
+    temporary.replace(path)
+
+
+def _read_json(path: Path) -> dict:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise RuntimeError(f"{path.name} must contain a JSON object.")
+    return value
+
+
+def _file_hash(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def run_core() -> CoreRun:
@@ -56,50 +77,66 @@ def run_core() -> CoreRun:
     environment["ANN_CORE_DIR"] = str(ACTIVE_CORE)
     environment["ANN_CORE_READY_FILE"] = str(READY_STATE)
     command = [sys.executable, str(ACTIVE_CORE / "main.py")]
-    LOGGER.info("Starting active Ann Core: %s", command)
     process = subprocess.Popen(command, cwd=ROOT, env=environment)
+    LOGGER.info("Starting Ann Core; launcher_pid=%s core_pid=%s command=%s", os.getpid(), process.pid, command)
     deadline = time.monotonic() + 30
     while not READY_STATE.exists():
         returncode = process.poll()
         if returncode is not None:
             LOGGER.error("Ann Core exited before Ready; returncode=%s", returncode)
-            return CoreRun(returncode, False)
+            return CoreRun(returncode, False, process.pid)
         if time.monotonic() >= deadline:
             LOGGER.error("Ann Core did not report Ready within 30 seconds")
             process.terminate()
-            return CoreRun(process.wait(), False)
+            return CoreRun(process.wait(), False, process.pid)
         time.sleep(0.1)
     LOGGER.info("Ann Core reported Ready")
     returncode = process.wait()
     LOGGER.info("Active Ann Core exited after Ready; returncode=%s", returncode)
-    return CoreRun(returncode, True)
+    return CoreRun(returncode, True, process.pid)
 
 
 def _wait_for_process_exit(process_id: int) -> None:
     """Wait for the running Ann process to release its project files."""
-    LOGGER.info("Waiting for process %s to exit before applying update", process_id)
+    deadline = time.monotonic() + 60
+    checks = 0
+    LOGGER.info(
+        "[update-diagnostic] Helper started; helper_pid=%s target_core_pid=%s timeout_seconds=60",
+        os.getpid(), process_id,
+    )
     while True:
         try:
             os.kill(process_id, 0)
         except OSError:
-            LOGGER.info("Process %s has exited", process_id)
+            LOGGER.info("[update-diagnostic] Target Core process %s exited after %s checks", process_id, checks)
             return
+        checks += 1
+        if checks == 1 or checks % 25 == 0:
+            LOGGER.info("[update-diagnostic] Waiting for target Core process %s; checks=%s", process_id, checks)
+        if time.monotonic() >= deadline:
+            raise TimeoutError(f"Timed out waiting 60 seconds for Core process {process_id} to exit.")
         time.sleep(0.2)
 
 
-def apply_verified_update() -> None:
+def apply_verified_update(request: dict) -> dict:
     """Replace managed project files while preserving local data and this bootstrap."""
     if not STAGED_CORE.is_dir():
         raise RuntimeError("No verified backup_ann project is available.")
-    LOGGER.info("Applying verified project update from %s", STAGED_CORE)
+    staged_launcher = STAGED_CORE / "launcher.py"
+    if not staged_launcher.is_file():
+        raise RuntimeError("The staged project does not contain launcher.py.")
+    launcher_changed = _file_hash(ROOT / "launcher.py") != _file_hash(staged_launcher)
+    LOGGER.info("Applying verified project update; transaction_id=%s launcher_changed=%s", request["transaction_id"], launcher_changed)
     if ROLLBACK_CORE.exists():
         shutil.rmtree(ROLLBACK_CORE)
     ROLLBACK_CORE.mkdir()
     managed_names = [item.name for item in STAGED_CORE.iterdir() if item.name not in PRESERVED_NAMES]
-    UPDATE_STATE.write_text(
-        json.dumps({"managed_names": managed_names, "rollback_attempted": False}, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    _write_json_atomically(UPDATE_STATE, {
+        "transaction_id": request["transaction_id"],
+        "managed_names": managed_names,
+        "rollback_attempted": False,
+        "launcher_changed": launcher_changed,
+    })
     LOGGER.info("Managed project entries to replace: %s", managed_names)
     for name in managed_names:
         current = ROOT / name
@@ -144,9 +181,8 @@ def apply_verified_update() -> None:
             shutil.copytree(staged, current)
         else:
             shutil.copy2(staged, current)
-    shutil.rmtree(STAGED_CORE)
-    LOGGER.info("Verified project update applied successfully; rollback stored in %s", ROLLBACK_CORE)
-    print("The verified Ann project update was applied successfully.")
+    LOGGER.info("Verified update applied; awaiting updated Core Ready; transaction_id=%s", request["transaction_id"])
+    return _read_json(UPDATE_STATE)
 
 
 def restore_rollback_update() -> None:
@@ -155,14 +191,14 @@ def restore_rollback_update() -> None:
         raise RuntimeError("No rollback_ann project is available.")
     if not UPDATE_STATE.is_file():
         raise RuntimeError("No update state is available for rollback.")
-    state = json.loads(UPDATE_STATE.read_text(encoding="utf-8"))
+    state = _read_json(UPDATE_STATE)
     if state.get("rollback_attempted"):
         raise RuntimeError("Automatic rollback was already attempted for this update.")
     managed_names = state.get("managed_names", [])
     if not isinstance(managed_names, list) or not all(isinstance(name, str) for name in managed_names):
         raise RuntimeError("The update state is invalid.")
     state["rollback_attempted"] = True
-    UPDATE_STATE.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+    _write_json_atomically(UPDATE_STATE, state)
     LOGGER.warning("Restoring rollback project after failed updated Core; entries=%s", managed_names)
     for name in managed_names:
         current = ROOT / name
@@ -198,43 +234,96 @@ def restore_rollback_update() -> None:
 
 
 def clear_update_state() -> None:
-    if UPDATE_STATE.exists():
-        UPDATE_STATE.unlink()
+    for path in (UPDATE_REQUEST, UPDATE_STATE):
+        if path.exists(): path.unlink()
+
+
+def _read_update_request() -> dict | None:
+    if not UPDATE_REQUEST.is_file(): return None
+    request = _read_json(UPDATE_REQUEST)
+    if not isinstance(request.get("transaction_id"), str) or request.get("staging_name") != STAGED_CORE.name or not isinstance(request.get("core_pid"), int):
+        raise RuntimeError("The update request is invalid.")
+    return request
+
+
+def _archive_staged_update(transaction_id: str) -> None:
+    if not STAGED_CORE.exists(): return
+    FAILED_UPDATES.mkdir(exist_ok=True)
+    destination = FAILED_UPDATES / transaction_id
+    if destination.exists(): shutil.rmtree(destination)
+    shutil.move(str(STAGED_CORE), str(destination))
+    LOGGER.warning("Archived failed staged project at %s", destination)
+
+
+def _complete_update() -> None:
+    if STAGED_CORE.exists(): shutil.rmtree(STAGED_CORE)
+    clear_update_state()
+    LOGGER.info("Update transaction completed successfully")
+
+
+def _handoff_to_current_launcher(mode: str) -> None:
+    command = [sys.executable, str(ROOT / "launcher.py"), mode]
+    LOGGER.info("Handing off to launcher on disk; old_launcher_pid=%s command=%s", os.getpid(), command)
+    os.execv(sys.executable, command)
+
+
+def _resume_updated_core() -> int:
+    outcome = run_core()
+    if outcome.ready:
+        _complete_update()
+        return outcome.returncode
+    LOGGER.error("Updated Core failed before Ready; core_pid=%s returncode=%s", outcome.process_id, outcome.returncode)
+    restore_rollback_update()
+    request = _read_update_request()
+    _archive_staged_update(str(request["transaction_id"]) if request else "unknown")
+    _handoff_to_current_launcher("--resume-rollback")
+    return 1
+
+
+def _resume_rollback_core() -> int:
+    outcome = run_core()
+    if outcome.ready:
+        _complete_update()
+        LOGGER.info("Rollback Core reported Ready; core_pid=%s", outcome.process_id)
+        return outcome.returncode
+    LOGGER.error("Rollback Core also failed before Ready; core_pid=%s returncode=%s", outcome.process_id, outcome.returncode)
+    return outcome.returncode
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--apply-update", action="store_true")
-    parser.add_argument("--wait-for", type=int)
+    parser.add_argument("--resume-update", action="store_true")
+    parser.add_argument("--resume-rollback", action="store_true")
     arguments = parser.parse_args()
-    if arguments.apply_update:
-        try:
-            if arguments.wait_for:
-                _wait_for_process_exit(arguments.wait_for)
-            apply_verified_update()
-            outcome = run_core()
-            if outcome.ready:
-                clear_update_state()
-                if outcome.returncode != 0:
-                    LOGGER.error("Updated Ann Core exited after Ready; returncode=%s", outcome.returncode)
-                return outcome.returncode
-            LOGGER.error("Updated Ann Core failed before Ready; returncode=%s", outcome.returncode)
-            restore_rollback_update()
-            restored = run_core()
-            if restored.ready:
-                LOGGER.info("Rollback Ann Core reported Ready")
-                clear_update_state()
-            else:
-                LOGGER.error("Rollback Ann Core also failed before Ready; returncode=%s", restored.returncode)
-            return restored.returncode
-        except Exception:
-            LOGGER.exception("Failed to apply verified Ann project update")
-            print("Ann update could not be applied. See logs/ann-update.log for details.")
-            return 1
+    if arguments.resume_update:
+        LOGGER.info("Resumed updated launcher; launcher_pid=%s", os.getpid())
+        return _resume_updated_core()
+    if arguments.resume_rollback:
+        LOGGER.info("Resumed restored launcher; launcher_pid=%s", os.getpid())
+        return _resume_rollback_core()
     if not ACTIVE_CORE.is_dir():
         print("Ann Core is missing. Restore Ann_core or download an update.")
         return 1
-    return run_core().returncode
+    outcome = run_core()
+    try:
+        request = _read_update_request()
+        if request is None:
+            return outcome.returncode
+        if request["core_pid"] != outcome.process_id:
+            LOGGER.error("Update request Core pid mismatch; request_pid=%s observed_pid=%s", request["core_pid"], outcome.process_id)
+            return outcome.returncode
+        if not outcome.ready or outcome.returncode != 0:
+            LOGGER.error("Update request was not applied because Core did not exit normally; ready=%s returncode=%s", outcome.ready, outcome.returncode)
+            return outcome.returncode
+        state = apply_verified_update(request)
+        if state["launcher_changed"]:
+            _handoff_to_current_launcher("--resume-update")
+            return 1
+        return _resume_updated_core()
+    except Exception:
+        LOGGER.exception("Failed to apply requested Ann update")
+        print("Ann update could not be applied. See logs/ann-update.log for details.")
+        return 1
 
 
 if __name__ == "__main__":
