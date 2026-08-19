@@ -50,7 +50,7 @@ Ann/
 └── CHANGELOG.md                  # Project-level release history
 ```
 
-`backup_ann/`, `rollback_ann/`, `data/`, and `logs/` are created or maintained at runtime and are not source directories. `modules/downloaded/` is reserved for a future individual-module installer; it is not used by the current full-project updater.
+`backup_ann/`, `rollback_ann/`, `failed_updates/`, `data/`, and `logs/` are created or maintained at runtime and are not source directories. `modules/downloaded/` is reserved for a future individual-module installer; it is not used by the current full-project updater.
 
 ## Modules
 
@@ -196,6 +196,8 @@ Ann Updater reads `catalog.json`, not README, to decide whether an Ann update is
 
 Every catalog-managed module must declare its own version in `manifest.json` and must be listed in `VERSION.md`. Each catalog entry must match that module's manifest ID and version. A release must not be published until these values have been checked for consistency. Ann Core changes do not require version changes to Ann Updater or optional modules unless their own code changes.
 
+`ann_core.launcher_sha256` is the canonical SHA-256 of `launcher.py`, calculated after converting CRLF line endings to LF. It has no separate Launcher version: Launcher is shipped as part of Ann Core. `update check` reports `Launcher: current` only when the local normalized hash matches this value; otherwise it reports `Launcher: modified (update required)`. The staged verifier rejects a project whose Launcher hash does not match the catalog. Update this field whenever `launcher.py` changes, even if its version remains part of the Ann Core release.
+
 ### Updating `catalog.json`
 
 `catalog.json` is the machine-readable release index used by Ann Updater. It must be updated in the same commit as every changed catalog-managed component, before that commit is pushed to GitHub.
@@ -203,11 +205,12 @@ Every catalog-managed module must declare its own version in `manifest.json` and
 For an Ann Core release:
 
 1. Set `ann_core.version` in `catalog.json` to the new Ann Core version.
-2. Keep `ann_core.archive_url` pointed at the GitHub archive for the release branch or tag.
-3. Set the same Core version in `Ann_core/manifest.json`, `Ann_core/src/ann/__init__.py`, `pyproject.toml`, and the Ann Core row in `VERSION.md`.
-4. Do not change another module's version unless that module's code also changed.
-5. Add the release notes to `CHANGELOG.md`.
-6. Commit and push all of these files together.
+2. Set `ann_core.launcher_sha256` to the normalized SHA-256 of `launcher.py` whenever Launcher code changes.
+3. Keep `ann_core.archive_url` pointed at the GitHub archive for the release branch or tag.
+4. Set the same Core version in `Ann_core/manifest.json`, `Ann_core/src/ann/__init__.py`, `pyproject.toml`, and the Ann Core row in `VERSION.md`.
+5. Do not change another module's version unless that module's code also changed.
+6. Add the release notes to `CHANGELOG.md`.
+7. Commit and push all of these files together.
 
 For example, Ann Core version `0.0.8` requires this catalog entry:
 
@@ -220,7 +223,7 @@ For example, Ann Core version `0.0.8` requires this catalog entry:
 }
 ```
 
-Ann Updater compares every catalog-managed module with its catalog version. If any listed version differs, Ann requires a complete project update; Ann is current only when every listed version matches exactly. Local custom modules that are not listed in `catalog.json` are not overwritten automatically.
+Ann Updater compares every catalog-managed module with its catalog version and compares the local Launcher against `ann_core.launcher_sha256`. If any listed version or the Launcher hash differs, Ann requires a complete project update; Ann is current only when every listed version and the Launcher hash match exactly. Local custom modules that are not listed in `catalog.json` are not overwritten automatically.
 
 Each `modules` entry in `catalog.json` must include the module ID, display name, version, and path to that module's manifest. The staged-project verifier checks that every catalog entry matches its manifest before Ann applies the update.
 

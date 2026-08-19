@@ -68,7 +68,8 @@ def _read_json(path: Path) -> dict:
 
 
 def _file_hash(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    """Hash source files consistently across Git's Windows line endings."""
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 
 def run_core() -> CoreRun:

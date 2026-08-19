@@ -14,6 +14,15 @@ Ann Core writes its module log to `logs/modules/ann.core.log`. Update diagnostic
 
 ## Release History
 
+### 0.0.20
+
+- Verify the staged Launcher against the catalog SHA-256 before it can be applied.
+- Use newline-normalized Launcher hashes so a Windows Git checkout does not trigger a false Launcher handoff.
+
+### 0.0.19
+
+- Add the Launcher SHA-256 to the Ann Core catalog entry.
+
 ### 0.0.18
 
 - Bind each update request to the parent Launcher session instead of a Windows redirector-sensitive process ID.

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -25,6 +26,14 @@ def verify_update(project_root: Path, core_root: Path) -> bool:
     catalog = json.loads((project_root / "catalog.json").read_text(encoding="utf-8"))
     if core_manifest.get("id") != "ann.core" or core_manifest.get("version") != catalog["ann_core"].get("version"):
         return False
+    expected_launcher_hash = catalog["ann_core"].get("launcher_sha256")
+    if expected_launcher_hash:
+        launcher_path = project_root / "launcher.py"
+        actual_launcher_hash = hashlib.sha256(
+            launcher_path.read_bytes().replace(b"\r\n", b"\n")
+        ).hexdigest()
+        if actual_launcher_hash != expected_launcher_hash:
+            return False
     if updater_manifest.get("id") != "ann.updater":
         return False
     for module in catalog.get("modules", []):

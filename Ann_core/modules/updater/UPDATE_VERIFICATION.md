@@ -18,7 +18,7 @@ Before an update is applied, the active project is not replaced. The staged veri
 
 ## Update Decision
 
-`catalog.json` lists Ann Core and every catalog-managed module. Ann Updater compares each installed version with the catalog version. If every version matches exactly, Ann is current. If any managed component differs, Ann stages a complete project update; it does not download an optional module independently.
+`catalog.json` lists Ann Core and every catalog-managed module. Ann Updater compares each installed version with the catalog version. It also compares `ann_core.launcher_sha256` against `launcher.py`, after normalizing Windows CRLF line endings to LF. If every version and the Launcher hash match exactly, Ann is current. If any managed component or the Launcher differs, Ann stages a complete project update; it does not download an optional module independently.
 
 ## Staged Verification Flow
 
@@ -42,6 +42,7 @@ The staged verifier checks that:
 
 - required project files exist, including `launcher.py`, `requirements.txt`, `VERSION.md`, `catalog.json`, and the required Core files;
 - Ann Core's manifest ID and version match `catalog.json`;
+- the staged `launcher.py` matches `ann_core.launcher_sha256` after CRLF-to-LF normalization when that catalog field is present;
 - Ann Updater's manifest ID and version match its catalog entry;
 - every catalog-managed module has an existing manifest whose ID and version match its catalog entry; and
 - PySide6 and the Core module runtime can be imported in an offscreen Qt context.
@@ -53,8 +54,8 @@ Dependency version checking runs before the verifier through `Ann_core/main.py`.
 When all staged checks pass:
 
 1. Ann Updater logs the staged command, its output, and the successful return code.
-2. It starts `launcher.py --apply-update --wait-for <ann-process-id>`.
-3. After Ann exits, the launcher copies the current managed project files to `rollback_ann/`, replaces them with the verified staged files, and starts the updated Core.
+2. It records an update request and asks Ann Core to exit normally.
+3. After Ann exits, the parent launcher copies the current managed project files to `rollback_ann/`, replaces them with the verified staged files, and starts the updated Core. If the Launcher changed, the old Launcher re-executes the newly applied Launcher first.
 4. When the updated Core reports `Ready`, it has started successfully. When it later exits, the launcher clears update state; a non-zero exit after `Ready` is recorded as a runtime failure without rollback.
 
 The launcher preserves `.venv`, `.git`, `modules/registry.json`, and downloaded modules while applying an update.

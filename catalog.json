@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "ann_core": {
-    "version": "0.0.19",
-    "launcher_sha256": "80bc00e8f4f7c0a9d4bca58b137e93a93fc84577ef6ba31aeae9d9c2b0d51b42",
+    "version": "0.0.20",
+    "launcher_sha256": "24f91e058e14298eda1d5b799af9c587c2cb914bee53743ed5604797ef83390b",
     "archive_url": "https://github.com/zohanlin2-ai/Ann/archive/refs/heads/master.zip"
   },
   "modules": [

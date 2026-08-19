@@ -4,7 +4,7 @@ Ann Updater is Ann's required system module. It is enabled by default and cannot
 
 It reads the GitHub catalog configured in the project root and stages a complete newer Ann project in `backup_ann/`. Ann Updater is delivered inside a complete Ann update, while retaining its own independent version. Downloading optional modules is not supported yet.
 
-`catalog.json` lists every catalog-managed module and its expected version. Ann Updater stages a complete project update whenever any listed installed module version differs from the catalog.
+`catalog.json` lists every catalog-managed module and its expected version. Its `ann_core.launcher_sha256` value also declares the expected normalized SHA-256 of `launcher.py`. Ann Updater stages a complete project update whenever any listed installed module version differs from the catalog or the local Launcher hash differs.
 
 ## Core Update Flow
 
@@ -36,6 +36,10 @@ Ann Core calls `validate()` before `start()`. Validation checks that `ann_config
 - `update ann`
 
 ## Release History
+
+### 0.0.18
+
+- Compare the local Launcher hash with `catalog.json` and show `Launcher: current` or `Launcher: modified (update required)` in `update check`.
 
 ### 0.0.17
 

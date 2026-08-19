@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 This project intends to follow the principles of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
+## [Ann Core 0.0.20] - TBD
+
+### Changed
+
+- Verify the staged Launcher against the catalog SHA-256 and use newline-normalized Launcher hashes during update handoff.
+
+## [Ann Updater 0.0.18] - TBD
+
+### Added
+
+- Detect local Launcher changes through the catalog SHA-256 and report the result in `update check`.
+
+### Changed
+
+- Treat a Launcher content mismatch as a full-project update requirement.
+
+## [Ann Core 0.0.19] - TBD
+
+### Added
+
+- Publish the Launcher SHA-256 in the Ann Core catalog entry.
+
 ## [Ann Core 0.0.18] - TBD
 
 ### Added
