@@ -38,6 +38,7 @@ def main() -> int:
     core_logger = get_module_logger(project_root, "ann.core")
     core_logger.info("Starting Ann Core")
     core = AnnCore(project_root, core_root)
+    app.aboutToQuit.connect(core.stop_all_modules)
     bubble = Bubble()
     chat = ChatWindow(core)
     bubble.clicked.connect(chat.showNormal)

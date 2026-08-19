@@ -1,7 +1,7 @@
 {
   "id": "ann.updater",
   "name": "Ann Updater",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "entry_point": "module.py",
   "system": true,
   "default_enabled": true,

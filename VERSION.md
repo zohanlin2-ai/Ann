@@ -4,8 +4,8 @@
 
 | Component | Version | Notes |
 | --- | --- | --- |
-| Ann Core | 0.0.15 | Safe staged manifest paths and Ready-aware recovery |
-| Ann Updater | 0.0.14 | Startup validation with unavailable-state isolation |
+| Ann Core | 0.0.16 | Generic module start, stop, and restart lifecycle operations |
+| Ann Updater | 0.0.15 | Lifecycle-compatible validation and start separation |
 | Ann Security Monitor | 0.0.13 | Catalog-managed module with an independent version sequence |
 | Python | >=3.10 | Development runtime |
 | PySide6 | 6.8.0.2 | Desktop UI framework |
@@ -15,14 +15,14 @@
 
 Only the latest modification log for each current module is retained here. See `CHANGELOG.md` for the complete chronological project history and each module's README for its detailed module history.
 
-### Ann Core — 0.0.15
+### Ann Core — 0.0.16
 
-- Reject catalog manifest paths that resolve outside the staged project root.
-- Clarify and enforce rollback only for failures before Core reports `Ready`.
+- Add immediate start, stop, and restart actions for modules with runtime state reporting.
+- Stop supported running modules during Ann shutdown without changing their enabled preference.
 
-### Ann Updater — 0.0.14
+### Ann Updater — 0.0.15
 
-- Add startup validation and lifecycle results so an unavailable Updater does not stop Ann Core.
+- Separate validation from startup so Ann Core can consistently run `validate()` before `start()`.
 
 ### Ann Security Monitor — 0.0.13
 

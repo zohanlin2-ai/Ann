@@ -46,6 +46,9 @@ class AnnCore:
         self.logger = get_module_logger(project_root, "ann.core")
         self.registry = ModuleRegistry(project_root, core_root)
         self.module_results: dict[str, ModuleResult] = {}
+        self.modules: dict[str, object] = {}
+        self.module_load_errors: list[str] = []
+        self.module_results["ann.core"] = ModuleResult.ready("Ann Core is ready.")
         try:
             self.updater = load_updater(project_root, core_root, self.registry)
             self.module_results["ann.updater"] = self._start_module("ann.updater", self.updater)
@@ -57,9 +60,14 @@ class AnnCore:
         self._load_optional_modules()
 
     def _start_module(self, module_id: str, module: object) -> ModuleResult:
+        validator = getattr(module, "validate", None)
         starter = getattr(module, "start", None)
         try:
-            result = starter(self) if callable(starter) else ModuleResult.ready("Loaded through legacy module adapter.")
+            validation = validator(self) if callable(validator) else ModuleResult.ready()
+            if isinstance(validation, ModuleResult) and validation.state not in {ModuleState.READY, ModuleState.DEGRADED}:
+                result = validation
+            else:
+                result = starter(self) if callable(starter) else ModuleResult.ready("Loaded through legacy module adapter.")
         except Exception as error:
             self.logger.exception("Module startup failed: %s", module_id)
             result = ModuleResult.failed(f"Module '{module_id}' failed to start.", str(error))
@@ -77,7 +85,31 @@ class AnnCore:
 
     def get_module(self, module_id: str) -> object | None:
         result = self.module_results.get(module_id)
-        return self.modules.get(module_id) if result is None or result.state is not ModuleState.FAILED else None
+        if result and result.state not in {ModuleState.READY, ModuleState.DEGRADED}:
+            return None
+        return self.modules.get(module_id)
+
+    def _module_instance(self, module_id: str) -> object | None:
+        if module_id == "ann.updater":
+            return self.updater
+        return self.modules.get(module_id)
+
+    def _module_entry(self, module_id: str) -> dict | None:
+        return next((item for item in self.registry.list_modules() if item["id"] == module_id), None)
+
+    def _load_optional_module(self, module_id: str) -> ModuleResult | None:
+        loaded, errors = load_enabled_modules(self.project_root, self.registry)
+        for error in errors:
+            error_id, _, details = error.partition(": ")
+            if error_id == module_id:
+                self.module_results[module_id] = ModuleResult.failed(f"Module '{module_id}' failed to load.", details)
+                self.logger.error("%s", error)
+                return self.module_results[module_id]
+        module = loaded.get(module_id)
+        if module is None:
+            return None
+        self.modules[module_id] = module
+        return self._start_module(module_id, module)
 
     def format_module_status(self) -> str:
         lines = ["Module                 Runtime state       Details"]
@@ -89,6 +121,19 @@ class AnnCore:
         return "\n".join(lines)
 
     def retry_module(self, module_id: str) -> CommandResult:
+        return self.start_module(module_id, retry=True)
+
+    def start_module(self, module_id: str, retry: bool = False) -> CommandResult:
+        entry = self._module_entry(module_id)
+        if entry is None:
+            return CommandResult(f"Module '{module_id}' is not installed.", AnnStatus.ATTENTION)
+        if module_id == "ann.core":
+            return CommandResult("Ann Core is already running and cannot be started separately.", AnnStatus.ATTENTION)
+        if not entry["enabled"]:
+            return CommandResult(f"Module '{module_id}' is disabled. Enable it before starting it.", AnnStatus.ATTENTION)
+        current = self.module_results.get(module_id)
+        if current and current.state in {ModuleState.READY, ModuleState.DEGRADED} and not retry:
+            return CommandResult(f"Module '{module_id}' is already running.", AnnStatus.ATTENTION)
         if module_id == "ann.updater":
             try:
                 self.updater = load_updater(self.project_root, self.core_root, self.registry)
@@ -98,13 +143,60 @@ class AnnCore:
                 message = f"Ann Updater is unavailable: {error}"
                 self.updater = UnavailableUpdater(message)
                 self.module_results[module_id] = ModuleResult.failed(message, str(error))
+        elif self._module_instance(module_id) is None or (current and current.state is ModuleState.FAILED):
+            result = self._load_optional_module(module_id)
+            if result is None:
+                return CommandResult(f"Module '{module_id}' could not be loaded.", AnnStatus.ERROR)
         else:
-            self._load_optional_modules()
+            self.module_results[module_id] = self._start_module(module_id, self._module_instance(module_id))
         result = self.module_results.get(module_id)
         if result is None:
             return CommandResult(f"Module '{module_id}' is not enabled or is not installed.", AnnStatus.ATTENTION)
-        status = AnnStatus.READY if result.state is ModuleState.READY else AnnStatus.ERROR
+        status = AnnStatus.READY if result.state in {ModuleState.READY, ModuleState.DEGRADED} else AnnStatus.ERROR
         return CommandResult(result.message, status)
+
+    def stop_module(self, module_id: str) -> CommandResult:
+        if module_id == "ann.core":
+            return CommandResult("Ann Core cannot be stopped independently. Exit Ann to stop it.", AnnStatus.ATTENTION)
+        entry = self._module_entry(module_id)
+        module = self._module_instance(module_id)
+        result = self.module_results.get(module_id)
+        if entry is None or module is None or result is None:
+            return CommandResult(f"Module '{module_id}' is not running.", AnnStatus.ATTENTION)
+        if result.state is ModuleState.STOPPED:
+            return CommandResult(f"Module '{module_id}' is already stopped.", AnnStatus.ATTENTION)
+        if result.state is ModuleState.FAILED:
+            return CommandResult(f"Module '{module_id}' is unavailable; use retry to start it again.", AnnStatus.ATTENTION)
+        stopper = getattr(module, "stop", None)
+        if not callable(stopper):
+            return CommandResult(f"Module '{module_id}' does not support controlled stopping.", AnnStatus.ATTENTION)
+        try:
+            stop_result = stopper(self)
+        except Exception as error:
+            self.logger.exception("Module stop failed: %s", module_id)
+            self.module_results[module_id] = ModuleResult.failed(f"Module '{module_id}' failed to stop.", str(error))
+        else:
+            if isinstance(stop_result, ModuleResult) and stop_result.state is ModuleState.FAILED:
+                self.module_results[module_id] = stop_result
+            else:
+                message = stop_result.message if isinstance(stop_result, ModuleResult) else f"Module '{module_id}' stopped."
+                self.module_results[module_id] = ModuleResult.stopped(message)
+        final = self.module_results[module_id]
+        self.logger.info("Module %s state=%s message=%s", module_id, final.state.value, final.message)
+        return CommandResult(final.message, AnnStatus.READY if final.state is ModuleState.STOPPED else AnnStatus.ERROR)
+
+    def restart_module(self, module_id: str) -> CommandResult:
+        current = self.module_results.get(module_id)
+        if current and current.state in {ModuleState.READY, ModuleState.DEGRADED}:
+            stopped = self.stop_module(module_id)
+            if self.module_results.get(module_id, current).state is not ModuleState.STOPPED:
+                return stopped
+        return self.start_module(module_id, retry=True)
+
+    def stop_all_modules(self) -> None:
+        for module_id, result in list(self.module_results.items()):
+            if module_id != "ann.core" and result.state in {ModuleState.READY, ModuleState.DEGRADED}:
+                self.stop_module(module_id)
 
     def execute(self, command: str) -> CommandResult:
         command = command.strip()
@@ -131,6 +223,9 @@ class AnnCore:
                 "  modules list\n"
                 "  modules status\n"
                 "  modules retry <module-id>\n"
+                "  modules start <module-id>\n"
+                "  modules stop <module-id>\n"
+                "  modules restart <module-id>\n"
                 "  modules enable <module-id>\n"
                 "  modules disable <module-id>\n"
                 "  update check\n"
@@ -149,6 +244,12 @@ class AnnCore:
             return CommandResult(self.format_module_status())
         if normalized.startswith("modules retry "):
             return self.retry_module(original.split(maxsplit=2)[2])
+        if normalized.startswith("modules start "):
+            return self.start_module(original.split(maxsplit=2)[2])
+        if normalized.startswith("modules stop "):
+            return self.stop_module(original.split(maxsplit=2)[2])
+        if normalized.startswith("modules restart "):
+            return self.restart_module(original.split(maxsplit=2)[2])
         if normalized.startswith("modules enable "):
             module_id = original.split(maxsplit=2)[2]
             self.registry.set_enabled(module_id, True)
@@ -172,7 +273,9 @@ class AnnCore:
         if normalized in {"exit", "quit"}:
             self.awaiting_exit_confirmation = True
             return CommandResult("Exit Ann? (Y/N)", AnnStatus.ATTENTION)
-        for module in self.modules.values():
+        for module_id, module in self.modules.items():
+            if self.module_results.get(module_id, ModuleResult.ready()).state not in {ModuleState.READY, ModuleState.DEGRADED}:
+                continue
             handler = getattr(module, "handle_command", None)
             if callable(handler):
                 response = handler(original)

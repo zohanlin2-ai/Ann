@@ -1,6 +1,6 @@
 # Ann Updater
 
-Ann Updater is Ann's required system module. It is enabled by default and cannot be disabled. Its version evolves independently from Ann Core and optional modules.
+Ann Updater is Ann's required system module. It is enabled by default and cannot be disabled, but Ann Core may temporarily stop and restart it during the current session. Its version evolves independently from Ann Core and optional modules.
 
 It reads the GitHub catalog configured in the project root and stages a complete newer Ann project in `backup_ann/`. Ann Updater is delivered inside a complete Ann update, while retaining its own independent version. Downloading optional modules is not supported yet.
 
@@ -24,12 +24,20 @@ Ann Updater writes its own module log to `logs/modules/ann.updater.log` and mirr
 
 See [Update Verification and Recovery](UPDATE_VERIFICATION.md) for the staged verification contract, failure paths, rollback behaviour, diagnostic locations, and release test checklist.
 
+## Startup and Failure Handling
+
+Ann Core calls `validate()` before `start()`. Validation checks that `ann_config.json` is readable and defines `catalog_url`; a failure marks only Ann Updater unavailable, leaving Ann Core and unrelated modules running. `start()` then records that the already validated Updater is ready. `health_check()` repeats validation, while `stop()` ends the module's current runtime state without changing its required enabled preference. Ann Core can use its generic start, stop, restart, and retry operations for the Updater. Validation failures and lifecycle events are recorded in `logs/modules/ann.updater.log`.
+
 ## Commands
 
 - `update check`
 - `update ann`
 
 ## Release History
+
+### 0.0.15
+
+- Separate validation from startup so the common Ann Core lifecycle is executed exactly once.
 
 ### 0.0.13
 

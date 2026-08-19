@@ -128,17 +128,35 @@ class ModuleListDialog(QDialog):
         super().__init__(); self.core = core
         self.setWindowTitle("Downloaded Modules"); self.setMinimumWidth(420)
         layout = QVBoxLayout(self); layout.addWidget(QLabel("Module List"))
+        self.status_labels: dict[str, QLabel] = {}
         for module in core.registry.list_modules():
             checkbox = QCheckBox(f"{module['name']}  ({module['id']})  {module['version']}")
             checkbox.setChecked(module["enabled"]); checkbox.setEnabled(not module["system"])
             if module["system"]: checkbox.setToolTip("Required system module")
             checkbox.toggled.connect(lambda enabled, module_id=module["id"]: self._set_enabled(module_id, enabled))
             layout.addWidget(checkbox)
+            row = QHBoxLayout()
+            state = core.module_results.get(module["id"])
+            status = QLabel(f"Runtime: {state.state.value if state else 'Not started'}")
+            self.status_labels[module["id"]] = status
+            row.addWidget(status, 1)
+            if module["id"] != "ann.core":
+                for label, action in (("Start", "start"), ("Stop", "stop"), ("Restart", "restart")):
+                    button = QPushButton(label)
+                    button.clicked.connect(lambda checked=False, module_id=module["id"], operation=action: self._operate(module_id, operation))
+                    row.addWidget(button)
+            layout.addLayout(row)
         close = QPushButton("Close"); close.clicked.connect(self.accept); layout.addWidget(close)
 
     def _set_enabled(self, module_id: str, enabled: bool) -> None:
         try: self.core.registry.set_enabled(module_id, enabled)
         except ValueError as error: QMessageBox.warning(self, "Module List", str(error))
+
+    def _operate(self, module_id: str, operation: str) -> None:
+        result = getattr(self.core, f"{operation}_module")(module_id)
+        state = self.core.module_results.get(module_id)
+        self.status_labels[module_id].setText(f"Runtime: {state.state.value if state else 'Not started'}")
+        QMessageBox.information(self, "Module List", result.text)
 
 
 class UpdateDialog(QDialog):

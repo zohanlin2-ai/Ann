@@ -36,10 +36,8 @@ class Updater:
         return ModuleResult.ready("Ann Updater is ready.")
 
     def start(self, context=None) -> ModuleResult:
-        result = self.validate(context)
-        if result.state.value == "Ready":
-            self.logger.info("Ann Updater started successfully")
-        return result
+        self.logger.info("Ann Updater started successfully")
+        return ModuleResult.ready("Ann Updater is ready.")
 
     def health_check(self, context=None) -> ModuleResult:
         return self.validate(context)

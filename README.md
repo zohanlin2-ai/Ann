@@ -23,20 +23,34 @@ Ann Core is itself a required, always-enabled system module. Other modules decla
 
 ```text
 Ann/
-├── launcher.py                   # Self-updating startup and recovery launcher
-├── Ann_core/                     # Active modular Ann Core
-│   ├── main.py
-│   ├── src/ann/
-│   └── modules/updater/          # Required GitHub update module
-├── backup_ann/                   # Staged complete project update; created at runtime
+├── launcher.py                   # Bootstrap, update application, and recovery
+├── ann_config.json               # Local catalog and application configuration
+├── catalog.json                  # Machine-readable GitHub release catalog
+├── requirements.txt              # Pinned runtime dependencies
+├── pyproject.toml                # Python package and runtime metadata
+├── Ann_core/                     # Required Ann Core system module
+│   ├── main.py                   # Core entry point and dependency check
+│   ├── manifest.json
+│   ├── README.md
+│   ├── src/ann/                  # Core runtime and desktop UI
+│   └── modules/updater/          # Required Ann Updater system module
+│       ├── manifest.json
+│       ├── module.py
+│       ├── README.md
+│       └── UPDATE_VERIFICATION.md
 ├── modules/
 │   ├── registry.json             # Local enabled/disabled module state
-│   └── downloaded/               # Downloaded optional modules
-├── catalog.json                  # GitHub module and Core catalog
+│   └── security_monitor/         # Optional Ann Security Monitor module
+├── backup_ann/                   # Runtime: verified staged full-project update
+├── rollback_ann/                 # Runtime: previous project used for recovery
+├── data/                         # Runtime: local module data
+├── logs/                         # Runtime: Ann and module diagnostics
 ├── README.md                     # This overview
 ├── VERSION.md                    # Current release information
 └── CHANGELOG.md                  # Project-level release history
 ```
+
+`backup_ann/`, `rollback_ann/`, `data/`, and `logs/` are created or maintained at runtime and are not source directories. `modules/downloaded/` is reserved for a future individual-module installer; it is not used by the current full-project updater.
 
 ## Modules
 
@@ -44,7 +58,7 @@ Each module must be self-contained in its own directory. Its detailed documentat
 
 The project-level README only provides a short catalog entry for each available module. Detailed setup instructions, configuration reference, permissions, examples, compatibility notes, limitations, and troubleshooting belong in the module directory.
 
-A module manifest must describe at least:
+A module manifest must always describe its stable identifier, display name, version, entry point, and default enabled state. It must also describe the following when they apply to the module:
 
 - A stable module identifier and display name
 - Version and Ann Core compatibility requirements, when applicable
@@ -69,7 +83,7 @@ Before creating or changing a module, read these root README sections:
 Every module must:
 
 1. Keep its implementation, `manifest.json`, and detailed `README.md` in one module directory.
-2. Use a stable lowercase module ID and declare its entry point, version, default-enabled state, dependencies, and permissions in `manifest.json`.
+2. Use a stable lowercase module ID and declare its entry point, version, and default-enabled state in `manifest.json`; declare dependencies, permissions, compatibility requirements, and configuration when applicable.
 3. Keep its version independent from Ann Core and other modules; increment only when that module's code changes.
 4. Record module-specific diagnostics in `logs/modules/<module-id>.log` when it performs runtime work.
 5. Store user data only in its approved local data location and never modify Ann Core or another module's files.
@@ -82,7 +96,7 @@ Before release, test the module enabled and disabled, check missing-dependency h
 Every module must implement a clear lifecycle:
 
 ```text
-Disabled → Starting → Ready
+Disabled → Starting → Ready → Stopped
                    ↘ Degraded
                    ↘ Failed
 ```
@@ -96,13 +110,17 @@ health_check(context) → ModuleResult
 stop(context)         → ModuleResult
 ```
 
-`ModuleResult` must report a `Ready`, `Degraded`, or `Failed` state, a user-readable message, technical details for logs, and whether retry is safe. Ann Core's Module Runtime owns the shared response: it stores each module's runtime state, exposes that state to the user, skips commands and UI for failed modules, and provides the generic `modules retry <module-id>` operation. Launcher only waits for Ann Core readiness; it never manages individual modules.
+`ModuleResult` must report a `Ready`, `Stopped`, `Degraded`, or `Failed` state, a user-readable message, technical details for logs, and whether retry is safe. Ann Core's Module Runtime owns the shared response: it stores each module's runtime state, exposes that state to the user, skips commands and UI for modules that are not running, and provides generic start, stop, restart, and retry operations. Launcher only waits for Ann Core readiness; it never manages individual modules.
+
+For a running module, Ann Core provides `modules stop <module-id>` and `modules restart <module-id>`. Restart always performs `stop()` followed by `validate()` and `start()` through the module's start path. A stopped, enabled module can be started with `modules start <module-id>`. Stopping a module is immediate for the current Ann session and does not change its **Enabled** preference; disabling it controls whether it starts automatically next time Ann starts. When Ann exits, Core calls `stop()` for every running module that supports controlled stopping. Ann Core itself cannot be stopped independently; exit Ann to stop it.
 
 Before reporting `Ready`, a module must validate its configuration, required files, permissions, and dependencies; start its runtime work; register its commands or UI; and write a successful startup record to its module log. A module may report `Degraded` when an optional sub-feature is unavailable but its remaining features can continue safely.
 
 When startup fails, the module must record a clear error and stack trace in `logs/modules/<module-id>.log`, report a user-readable reason, stop only its own runtime work, and provide a safe retry or restart path. It must not crash Ann Core or disable unrelated modules. A failed optional module remains enabled in the user's saved Module List preference, but is unavailable for the current session until it is retried or Ann restarts.
 
 Ann Core is the exception: a Core startup failure prevents Ann from starting. If the failure occurs before Core reports `Ready` after an update, the launcher recovery process handles rollback. A required system module such as Ann Updater should leave Ann running but mark only its own functionality unavailable. An optional module may degrade a sub-feature instead of failing completely when that is safe.
+
+New modules must implement this lifecycle contract. Existing legacy modules remain loadable through Ann Core's compatibility adapter while they are migrated. Ann Security Monitor is currently such a legacy module; it remains supported but is not the implementation example for new modules.
 
 Each module README must include a **Startup and Failure Handling** section covering its preconditions, successful startup behaviour, health checks, failure behaviour, recovery or retry procedure, and log location. Each module must test normal startup, an injected or simulated startup failure, missing dependencies or invalid configuration, failure isolation from Ann and other modules, and successful recovery after retry or restart.
 
@@ -131,7 +149,7 @@ The following table provides a short catalog of every module currently included 
 | --- | --- | --- | --- | --- |
 | `ann.core` | Ann Core | Required system module | Enabled | Desktop UI, command routing, registry, module runtime, and update recovery. |
 | `ann.updater` | Ann Updater | Required system module | Enabled | Checks, verifies, and applies full-project Ann updates. |
-| `ann.security-monitor` | Ann Security Monitor | Optional module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center. |
+| `ann.security-monitor` | Ann Security Monitor | Optional legacy module | Enabled | Read-only login-anomaly and packet-metadata monitoring with a local Security Center; lifecycle migration is planned. |
 
 ## Version and Release Management
 
@@ -158,8 +176,8 @@ Each independently versioned component uses the format `A.B.C`. Ann Core, Ann Up
 Examples:
 
 ```text
-0.0.00 + code change = 0.0.01
-0.0.99 + code change = 0.1.00
+0.0.0 + code change = 0.0.1
+0.0.99 + code change = 0.1.0
 0.9.99 + code change = project-owner decision required
 ```
 
@@ -228,7 +246,7 @@ For example, the current Ann Security Monitor module is maintained in `modules/s
 
 ## Status
 
-Ann currently includes its first desktop UI milestone: a draggable status bubble with a glowing state ring and a command-only chat window. The Bubble starts in the primary screen's bottom-right corner. Its context menu provides Update, Modules, Security Center (when Security Monitor is enabled), About Ann, and Exit Ann actions. The command core supports module and update commands as well as `exit` / `quit`.
+Ann currently includes its first desktop UI milestone: a draggable status bubble with a glowing state ring and a command-only chat window. The Bubble starts in the primary screen's bottom-right corner. Its context menu provides Update, Modules, Security Center, About Ann, and Exit Ann actions. Security Center reports when Security Monitor is disabled or unavailable. The command core supports module and update commands as well as `exit` / `quit`.
 
 ## Requirements and Installation
 
@@ -238,7 +256,7 @@ Ann is currently written in **Python** and uses **PySide6** for its desktop inte
 
 | Item | Required version | Purpose |
 | --- | --- | --- |
-| Python | 3.10 or newer | Ann core, module runtime, and launcher |
+| Python | >=3.10, <3.13 | Ann core, module runtime, and launcher; required by the pinned PySide6 release |
 | PySide6 | 6.8.0.2 | Desktop bubble, status ring, and command window |
 | Scapy | 2.6.1 | Security Monitor packet-metadata capture support |
 
@@ -248,7 +266,7 @@ The root `requirements.txt` includes the bundled Security Monitor dependency fil
 
 ### Windows Development Setup
 
-Use an official Windows CPython installation (Python 3.10 or newer) and create a virtual environment in the project directory. Do not use the MSYS2/MinGW Python for this installation workflow because PyPI does not provide a compatible PySide6 wheel for that platform.
+Use an official Windows CPython installation from Python 3.10 through 3.12 and create a virtual environment in the project directory. Python 3.13 is not supported by the pinned `PySide6==6.8.0.2` release. Do not use the MSYS2/MinGW Python for this installation workflow because PyPI does not provide a compatible PySide6 wheel for that platform.
 
 In PowerShell, from the project directory:
 
@@ -308,6 +326,9 @@ Available chat commands include:
 modules list
 modules status
 modules retry <module-id>
+modules start <module-id>
+modules stop <module-id>
+modules restart <module-id>
 modules enable <module-id>
 modules disable <module-id>
 update check
