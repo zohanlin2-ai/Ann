@@ -91,9 +91,26 @@ Before reporting `Ready`, a module must validate its configuration, required fil
 
 When startup fails, the module must record a clear error and stack trace in `logs/modules/<module-id>.log`, report a user-readable reason, stop only its own runtime work, and provide a safe retry or restart path. It must not crash Ann Core or disable unrelated modules. A failed optional module remains enabled in the user's saved Module List preference, but is unavailable for the current session until it is retried or Ann restarts.
 
-Ann Core is the exception: a Core startup failure prevents Ann from starting, and an update-related Core failure is handled by the launcher rollback process. A required system module such as Ann Updater should leave Ann running but mark only its own functionality unavailable. An optional module may degrade a sub-feature instead of failing completely when that is safe.
+Ann Core is the exception: a Core startup failure prevents Ann from starting. If the failure occurs before Core reports `Ready` after an update, the launcher recovery process handles rollback. A required system module such as Ann Updater should leave Ann running but mark only its own functionality unavailable. An optional module may degrade a sub-feature instead of failing completely when that is safe.
 
 Each module README must include a **Startup and Failure Handling** section covering its preconditions, successful startup behaviour, health checks, failure behaviour, recovery or retry procedure, and log location. Each module must test normal startup, an injected or simulated startup failure, missing dependencies or invalid configuration, failure isolation from Ann and other modules, and successful recovery after retry or restart.
+
+## Launcher Startup and Recovery Contract
+
+`launcher.py` is Ann's bootstrap and recovery component, not a module. It is not listed in Module List and has no enabled or disabled state, but it must follow the startup and failure-handling rules below.
+
+The launcher lifecycle is:
+
+```text
+Validating → Starting Core → Waiting for Ready → Ready
+                                      ↘ Startup Failed
+```
+
+Before starting Ann Core, the launcher must validate the active Core path and any pending update state. After starting Core, it must wait for an explicit `Ready` signal from Core. A non-zero Core exit before that signal is a startup failure. When this happens immediately after a verified update, the launcher must restore `rollback_ann/` once and start the previous Core. A failed restored Core must stop recovery rather than enter a retry loop.
+
+After Core reports `Ready`, the launcher must treat later non-zero exits as runtime failures: record them in `logs/ann-update.log`, but do not automatically roll back a successfully started update. The launcher must record validation, Core start, Ready confirmation, startup failure, rollback, restored-Core result, and unexpected runtime exit events in that log.
+
+Launcher tests must cover normal Core readiness, Core failure before readiness, one-time rollback success, rollback failure without looping, and a non-zero exit after readiness without rollback.
 
 ### Current Modules
 
