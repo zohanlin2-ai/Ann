@@ -48,13 +48,12 @@ time-bounded.
 ## Module Versioning Rules
 
 Security Monitor follows Ann's root [Version and Release Management](../../README.md#version-and-release-management) chapter.
-It is a catalog-managed module included in every Ann release, so its version must
-always equal the current Ann Core release version; it does not independently use a
-separate version sequence.
+It is a catalog-managed module with its own independent version sequence. Its
+version changes only when Security Monitor code changes; an Ann Core release does
+not by itself change this module's version.
 
-- Every completed, committable Security Monitor code change increments Ann's
-  release version under the root `A.B.C` rules, and the same version is assigned to
-  Security Monitor in that release.
+- Every completed, committable Security Monitor code change increments Security
+  Monitor's own version under the root `A.B.C` rules.
 - Documentation-only changes do not change the module version.
 - For a module release, update `manifest.json`, this README's Release History, the
   **Current Module Versions** table in the root README, `VERSION.md`,
@@ -67,7 +66,8 @@ separate version sequence.
 
 ### 0.0.13
 
-- Align the module with the catalog-managed Ann `0.0.13` release.
+- Establish the independent-module-version migration baseline; no separate
+  Security Monitor feature change was made in this release.
 
 ### 0.0.11
 

@@ -1,8 +1,8 @@
 # Ann Updater
 
-Ann Updater is Ann's required system module. It is enabled by default and cannot be disabled.
+Ann Updater is Ann's required system module. It is enabled by default and cannot be disabled. Its version evolves independently from Ann Core and optional modules.
 
-It reads the GitHub catalog configured in the project root and stages a complete newer Ann project in `backup_ann/`. Ann Updater is bundled with Ann Core and is updated together with it. Downloading optional modules is not supported yet.
+It reads the GitHub catalog configured in the project root and stages a complete newer Ann project in `backup_ann/`. Ann Updater is delivered inside a complete Ann update, while retaining its own independent version. Downloading optional modules is not supported yet.
 
 `catalog.json` lists every catalog-managed module and its expected version. Ann Updater stages a complete project update whenever any listed installed module version differs from the catalog.
 
@@ -29,4 +29,4 @@ Ann Updater writes its own module log to `logs/modules/ann.updater.log` and mirr
 
 ### 0.0.13
 
-- Include `launcher.py` in the full-project update and rollback transaction.
+- Establish the independent-module-version migration baseline; no separate Updater feature change was made in this release.

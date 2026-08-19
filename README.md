@@ -6,7 +6,7 @@ Ann is a modular AI Assistant designed to stay small at its core and grow throug
 
 - Keep the default installation simple and focused.
 - Add capabilities without changing the core application.
-- Let users review, install, enable, disable, and update modules independently.
+- Let users review and enable or disable modules independently; independent module downloads and updates are planned.
 - Keep every module's implementation and detailed documentation together.
 - Support a GitHub-based module catalog so Ann can check for available updates and optional features.
 
@@ -19,11 +19,11 @@ Ann has two layers:
 
 Ann Core is itself a required, always-enabled system module. Other modules declare their identity, version, entry point, dependencies, and requested permissions in a manifest file.
 
-## Proposed Project Layout
+## Project Layout
 
 ```text
 Ann/
-├── launcher.py                   # Stable Core selector and trial launcher
+├── launcher.py                   # Self-updating startup and recovery launcher
 ├── Ann_core/                     # Active modular Ann Core
 │   ├── main.py
 │   ├── src/ann/
@@ -44,14 +44,38 @@ Each module must be self-contained in its own directory. Its detailed documentat
 
 The project-level README only provides a short catalog entry for each available module. Detailed setup instructions, configuration reference, permissions, examples, compatibility notes, limitations, and troubleshooting belong in the module directory.
 
-A module manifest is expected to describe at least:
+A module manifest must describe at least:
 
 - A stable module identifier and display name
-- Version and Ann core compatibility requirements
+- Version and Ann Core compatibility requirements, when applicable
 - Entry point
 - Dependencies
 - Requested permissions, such as network or file-system access
 - Optional configuration schema
+
+## Module Development Contract
+
+This section defines the minimum development and release contract for every Ann module. A module's own README contains its feature-specific details; it does not replace the project rules below.
+
+Before creating or changing a module, read these root README sections:
+
+- **Modules** for structure and documentation placement.
+- **Module Development Contract** for required development and release behaviour.
+- **Version and Release Management** for independent versions, catalog maintenance, and release records.
+- **Security Principles** for permissions and safety boundaries.
+- **Technology and Dependency Record** when adding or changing dependencies.
+- **Updates and Module State** for how catalog-managed modules are delivered and recovered.
+
+Every module must:
+
+1. Keep its implementation, `manifest.json`, and detailed `README.md` in one module directory.
+2. Use a stable lowercase module ID and declare its entry point, version, default-enabled state, dependencies, and permissions in `manifest.json`.
+3. Keep its version independent from Ann Core and other modules; increment only when that module's code changes.
+4. Record module-specific diagnostics in `logs/modules/<module-id>.log` when it performs runtime work.
+5. Store user data only in its approved local data location and never modify Ann Core or another module's files.
+6. Follow the module release checklist in **Adding or Updating a Module** before publishing.
+
+Before release, test the module enabled and disabled, check missing-dependency handling, verify its permissions, and verify its catalog/update behaviour when it is catalog-managed.
 
 ### Current Module Versions
 
@@ -67,21 +91,21 @@ The following table lists every module currently included with Ann. Ann Core and
 
 The canonical Ann repository is intended to be hosted at [zohanlin2-ai/Ann](https://github.com/zohanlin2-ai/Ann).
 
-Ann can use the repository as a module catalog. On request, the core can compare locally installed module versions with the published catalog, report available updates, and let the user choose which optional modules to install or enable. Updates should always be reviewed before installation, especially when a module requests new permissions.
+Ann uses the repository as a module catalog. The core compares locally installed catalog-managed module versions with the published catalog and reports available Ann updates. Users can enable or disable already installed optional modules. Downloading individual optional modules is not supported yet.
 
-The exact catalog format and update mechanism will be defined with the first working module system. A future catalog should include module version, compatibility information, source location, integrity information, and release notes.
+The catalog records each managed module's ID, display name, version, and manifest location. Future catalog fields may add compatibility information, source locations for independently distributed modules, integrity information, and release notes.
 
 This chapter is the authoritative process for releasing Ann and its modules. Every new module must keep its detailed README beside its code and follow the version, catalog, and documentation rules in this chapter before it is released.
 
 ### Version Number Rules
 
-Ann uses the version format `A.B.C`.
+Each independently versioned component uses the format `A.B.C`. Ann Core, Ann Updater, and every optional module own their own version sequence.
 
 - `A` is fixed at `0` unless the project owner explicitly authorizes a change.
 - `B` ranges from `0` to `9`.
 - `C` ranges from `0` to `99`.
-- Each completed, committable code change increments `C` by one.
-- Documentation-only changes do not change the version number.
+- A completed, committable code change increments `C` only for the component whose code changed.
+- Documentation-only changes do not change any component version.
 - After `C` reaches `99`, the next code change resets `C` to `0` and increments `B` by one.
 - When the version has reached `0.9.99`, the next code change must not be versioned automatically. Ann must ask the project owner whether `A` should be increased before proceeding.
 
@@ -95,30 +119,31 @@ Examples:
 
 ### `VERSION.md` Document Rules
 
-`VERSION.md` is the single current-version reference for Ann. It must list Ann Core and every module currently included with Ann, with each module's current version. It must also retain the latest modification log for each listed module. Earlier version notes and the complete chronological project history belong in `CHANGELOG.md`.
+`VERSION.md` is the single current-version reference for Ann. It must list Ann Core and every module currently included with Ann, with each module's current version. It must also retain the latest modification log for each listed module. Earlier version notes and the complete chronological project history belong in `CHANGELOG.md`. Ann `0.0.13` is the migration baseline for independent module versions; it does not imply that every module received a feature change in that release.
 
 ### Version Consistency
 
-Ann Updater reads `catalog.json`, not README, to decide whether an Ann update is available. The `ann_core.version` value in `catalog.json` must match the Ann Core version declared in all of the following places:
+Ann Updater reads `catalog.json`, not README, to decide whether an Ann update is available. Every catalog entry must match its own component manifest and row in `VERSION.md`. Specifically, the `ann_core.version` value in `catalog.json` must match the Ann Core version declared in all of the following places:
 
 - `Ann_core/manifest.json`
 - `Ann_core/src/ann/__init__.py`
 - `pyproject.toml`
-- The Ann Core and every catalog-managed module row in `VERSION.md`
+- The Ann Core row in `VERSION.md`
 
-When Ann Core is released, the Ann Updater manifest is bundled with that release and must use the same version. Every optional module must declare its own version in its `manifest.json` and must be listed in both `VERSION.md` and the **Current Module Versions** table above. A release must not be published until these values have been checked for consistency.
+Every catalog-managed module must declare its own version in `manifest.json` and must be listed in both `VERSION.md` and the **Current Module Versions** table above. Each catalog entry must match that module's manifest ID and version. A release must not be published until these values have been checked for consistency. Ann Core changes do not require version changes to Ann Updater or optional modules unless their own code changes.
 
 ### Updating `catalog.json`
 
-`catalog.json` is the machine-readable release index used by Ann Updater. It must be updated in the same commit as every Ann Core release, before that commit is pushed to GitHub.
+`catalog.json` is the machine-readable release index used by Ann Updater. It must be updated in the same commit as every changed catalog-managed component, before that commit is pushed to GitHub.
 
 For an Ann Core release:
 
 1. Set `ann_core.version` in `catalog.json` to the new Ann Core version.
 2. Keep `ann_core.archive_url` pointed at the GitHub archive for the release branch or tag.
-3. Set the same version in `Ann_core/manifest.json`, `Ann_core/modules/updater/manifest.json`, `Ann_core/src/ann/__init__.py`, `pyproject.toml`, and `VERSION.md`.
-4. Add the release notes to `CHANGELOG.md`.
-5. Commit and push all of these files together.
+3. Set the same Core version in `Ann_core/manifest.json`, `Ann_core/src/ann/__init__.py`, `pyproject.toml`, and the Ann Core row in `VERSION.md`.
+4. Do not change another module's version unless that module's code also changed.
+5. Add the release notes to `CHANGELOG.md`.
+6. Commit and push all of these files together.
 
 For example, Ann Core version `0.0.8` requires this catalog entry:
 
@@ -137,16 +162,16 @@ Each `modules` entry in `catalog.json` must include the module ID, display name,
 
 ### Adding or Updating a Module
 
-When a module is added or its code changes, first read and follow this **Version and Release Management** chapter. Then update all of the following before publishing the Ann release:
+When a module is added or its code changes, first read and follow the **Module Development Contract** and this **Version and Release Management** chapter. Then update all of the following before publishing that module:
 
 1. Keep the module implementation, `manifest.json`, and detailed module `README.md` in the same module directory.
-2. Set the module's own version in its `manifest.json`.
+2. Increment and set only that module's own version in its `manifest.json`.
 3. Add or update that module in the **Current Module Versions** table in this README.
 4. Record the module's latest modification log in `VERSION.md`, add a module-specific release note to its README, and add a project-level note to `CHANGELOG.md`.
 5. If the module is part of an Ann release, add its ID, display name, version, and manifest path to `catalog.json` so Ann Updater can verify it. Add archive URLs, compatibility requirements, and permissions when the module is independently distributed in the future.
 6. Commit and push the module code, manifest, README, catalog entry when applicable, and version documentation together.
 
-For example, the current Ann Security Monitor module is maintained in `modules/security_monitor/` with its implementation, `manifest.json`, detailed README, tests, and the current Ann release version (`0.0.13`).
+For example, the current Ann Security Monitor module is maintained in `modules/security_monitor/` with its implementation, `manifest.json`, detailed README, tests, and its current module version (`0.0.13`).
 
 ## Security Principles
 
@@ -211,7 +236,7 @@ Modules will declare compatibility with Ann releases rather than relying on the 
 
 ## Updates and Module State
 
-The required **Ann Updater** module uses the configured GitHub catalog to check for and update Ann Core. It is always enabled and is updated together with Ann Core. Downloading optional modules is not supported yet.
+The required **Ann Updater** module uses the configured GitHub catalog to check for and update the complete Ann project. It is always enabled. It is delivered with a full Ann update, but its version changes independently from Ann Core. Downloading optional modules is not supported yet.
 
 For an Ann update, the Updater downloads the complete GitHub project into `backup_ann/` and runs a headless validation of the staged project. If validation succeeds, Ann closes and `launcher.py` automatically applies the update and restarts Ann. The updater preserves `.venv`, `.git`, and local module state; it also updates `launcher.py` as part of the managed project. Replaced managed project files are saved in `rollback_ann/`.
 

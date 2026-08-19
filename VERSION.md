@@ -5,8 +5,8 @@
 | Component | Version | Notes |
 | --- | --- | --- |
 | Ann Core | 0.0.13 | Self-updating launcher with automatic rollback after a failed update |
-| Ann Updater | 0.0.13 | Required system module, bundled with Ann Core |
-| Ann Security Monitor | 0.0.13 | Catalog-managed module included with this release |
+| Ann Updater | 0.0.13 | Required system module with an independent version sequence |
+| Ann Security Monitor | 0.0.13 | Catalog-managed module with an independent version sequence |
 | Python | >=3.10 | Development runtime |
 | PySide6 | 6.8.0.2 | Desktop UI framework |
 | Module Catalog Schema | 1 | GitHub catalog format |
@@ -22,8 +22,8 @@ Only the latest modification log for each current module is retained here. See `
 
 ### Ann Updater — 0.0.13
 
-- Include the launcher in full-project update and rollback transactions.
+- Establish the independent-module-version migration baseline; no separate Updater feature change was made in this release.
 
 ### Ann Security Monitor — 0.0.13
 
-- Align the module with the catalog-managed Ann `0.0.13` release.
+- Establish the independent-module-version migration baseline; no separate Security Monitor feature change was made in this release.

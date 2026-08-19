@@ -9,6 +9,7 @@ This project intends to follow the principles of [Keep a Changelog](https://keep
 ### Changed
 
 - Include `launcher.py` in full-project updates and rollback transactions so future launcher recovery logic is delivered with Ann updates.
+- Establish `0.0.13` as the migration baseline for independently versioned Ann modules; future Core releases do not automatically change other module versions.
 
 ## [0.0.12] - TBD
 
