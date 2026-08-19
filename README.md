@@ -217,6 +217,10 @@ For an Ann update, the Updater downloads the complete GitHub project into `backu
 
 If the updated Ann Core then exits with a non-zero status, the launcher automatically restores the managed project files from `rollback_ann/` and starts the previous version once. The recovery state prevents repeated automatic rollback attempts. If the restored version also fails, Ann stops and the update logs retain the diagnostic details.
 
+### Launcher Migration
+
+Ann `0.0.13` and later update `launcher.py` together with the rest of the managed project, so future launcher recovery improvements are delivered through Ann updates. Installations that first used Ann before `0.0.13` must manually sync the project once (for example, run `git pull` in the project directory) to receive the new launcher; earlier launchers intentionally preserved themselves during updates.
+
 ### Update Debug Log
 
 Ann records update diagnostics in `logs/ann-update.log`. This file records the catalog URL and version comparison, archive download size and validation, staged-project verification output, launcher replacement steps, and full error stack traces. Log files rotate automatically at 1 MB and keep three previous files. The `logs/` directory is local diagnostic data and is not committed to Git.
